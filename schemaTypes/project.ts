@@ -1,3 +1,4 @@
+// schemaTypes/project.ts
 import { defineType, defineField } from 'sanity';
 
 export const project = defineType({
@@ -5,14 +6,62 @@ export const project = defineType({
   title: 'Proyek Portofolio',
   type: 'document',
   fields: [
-    defineField({ name: 'title', title: 'Nama Proyek', type: 'string' }), // [cite: 90]
-    defineField({ name: 'slug', title: 'Slug URL', type: 'slug', options: { source: 'title' } }), // [cite: 91]
-    defineField({ name: 'thumbnail', title: 'Gambar Utama (Bento)', type: 'image', options: { hotspot: true } }), // [cite: 92]
-    defineField({ name: 'gallery', title: 'Galeri Foto Pendukung', type: 'array', of: [{ type: 'image' }] }), // [cite: 93]
-    defineField({ name: 'description', title: 'Deskripsi Detail (Tantangan & Solusi)', type: 'array', of: [{ type: 'block' }] }), // [cite: 94]
-    defineField({ name: 'technologies', title: 'Tech Stack (Tags)', type: 'array', of: [{ type: 'string' }] }), // [cite: 95]
-    defineField({ name: 'liveLink', title: 'Tautan Live Demo', type: 'url' }), // [cite: 96]
-    defineField({ name: 'gitLink', title: 'Tautan GitHub', type: 'url' }), // [cite: 96]
-    defineField({ name: 'featured', title: 'Tampilkan di Home (Bento)?', type: 'boolean' }), // [cite: 97]
+    defineField({ 
+      name: 'title', 
+      title: 'Nama Proyek', 
+      type: 'string' 
+    }),
+    defineField({ 
+      name: 'slug', 
+      title: 'Slug URL', 
+      type: 'slug', 
+      options: { 
+        source: 'title',
+        maxLength: 96,
+      } 
+    }),
+    defineField({ 
+      name: 'thumbnail', 
+      title: 'Gambar Sampul (Thumbnail)', 
+      type: 'image',
+      options: { hotspot: true } // Mengaktifkan fokus pemotongan gambar dinamis
+    }),
+    defineField({ 
+      name: 'description', 
+      title: 'Deskripsi Singkat (Ikhtisar)', 
+      type: 'text',
+      description: 'Ringkasan 2-3 kalimat yang tampil pada kartu galeri utama.'
+    }),
+    defineField({ 
+      name: 'content', 
+      title: 'Detail Studi Kasus (Rich Text)', 
+      type: 'array', 
+      of: [{ type: 'block' }],
+      description: 'Penjelasan panjang mengenai arsitektur kode, tantangan teknis, dan solusi.'
+    }),
+    defineField({ 
+      name: 'tags', 
+      title: 'Teknologi / Stack yang Digunakan', 
+      type: 'array', 
+      of: [{ type: 'string' }],
+      description: 'Contoh item: Astro, React 19, Tailwind v4, GSAP, TypeScript.'
+    }),
+    defineField({ 
+      name: 'liveLink', 
+      title: 'Tautan Aplikasi Live (URL)', 
+      type: 'url' 
+    }),
+    defineField({ 
+      name: 'gitLink', 
+      title: 'Tautan Repositori GitHub (URL)', 
+      type: 'url' 
+    }),
+    defineField({ 
+      name: 'featured', 
+      title: 'Tampilkan di Halaman Utama (Featured)', 
+      type: 'boolean',
+      initialValue: false,
+      description: 'Aktifkan jika proyek ini ingin dipajang di Bento Grid halaman depan.'
+    }),
   ],
 });

@@ -1,0 +1,200 @@
+---
+// src/pages/proyek/index.astro
+import { client } from '../../lib/sanity';
+import { ClientRouter } from 'astro:transitions';
+import '../../styles/global.css';
+
+import Header from '../../components/Header.astro';
+import Footer from '../../components/Footer.astro';
+import AudioPlayer from '../../components/AudioPlayer.astro';
+
+// 🚀 PIPELINE DATA: Ambil SEMUA proyek dari Sanity CMS
+const projects = await client.fetch(`
+  *[_type == "project"] | order(_createdAt desc){
+    title,
+    description,
+    slug,
+    tags,
+    "imageUrl": thumbnail.asset->url,
+    liveLink,
+    gitLink
+  }
+`);
+
+const tracks = await client.fetch(`*[_type == "track"]{ trackTitle, artist, youtubeUrl }`);
+const profile = await client.fetch(`*[_type == "profile"][0]{ name }`);
+
+const allTags = projects && projects.length > 0 
+  ? ['Semua', ...new Set(projects.flatMap((p: any) => p.tags || []))]
+  : ['Semua', 'Frontend', 'Backend', 'Mobile'];
+---
+
+<html lang="id">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Proyek & Karya Terbaik | Ryzal Fadhillah</title>
+    <script is:inline>
+      const applyThemeEngine = () => {
+        const theme = (() => {
+          if (typeof localStorage !== 'undefined' && localStorage.getItem('theme')) return localStorage.getItem('theme');
+          return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+        })();
+        if (theme === 'dark') document.documentElement.classList.add('dark');
+        else document.documentElement.classList.remove('dark');
+      };
+      applyThemeEngine();
+      document.addEventListener('astro:after-swap', applyThemeEngine);
+    </script>
+    <ClientRouter />
+  </head>
+  <body class="bg-zinc-50 text-zinc-900 dark:bg-zinc-950 dark:text-zinc-100 font-sans min-h-screen transition-colors duration-300">
+    
+    <div class="max-w-5xl mx-auto px-4 sm:px-6 py-12 space-y-12">
+      <Header />
+      
+      <AudioPlayer tracks={tracks} transition:persist="cyber-audio" />
+      
+      <section class="space-y-3 pt-4 opacity-0 transform translate-y-6" id="project-header">
+        <span class="text-[10px] font-mono font-bold uppercase tracking-widest text-emerald-500">// Engineering Blueprint</span>
+        <h1 class="text-4xl font-black tracking-tight sm:text-5xl">Gudang Karya & Proyek</h1>
+        <p class="text-zinc-500 dark:text-zinc-400 max-w-2xl text-base sm:text-lg">
+          Koleksi aplikasi, rekayasa API, dan solusi digital yang telah saya rancang dan kembangkan sepenuhnya.
+        </p>
+      </section>
+
+      <section class="flex flex-wrap gap-2 pt-2 opacity-0 transform translate-y-4" id="project-filter-bar">
+        {allTags.map((tag: string, idx: number) => (
+          <button 
+            data-filter={tag}
+            class={`filter-trigger-btn px-4 py-2 text-xs font-mono font-bold uppercase rounded-xl border transition-all cursor-pointer select-none ${
+              idx === 0 
+                ? 'bg-emerald-500 border-emerald-500 text-zinc-950 shadow-md shadow-emerald-500/10 active-filter' 
+                : 'bg-white dark:bg-zinc-950 border-zinc-200 dark:border-zinc-900 text-zinc-400 dark:text-zinc-500 hover:border-emerald-500/40 hover:text-emerald-500'
+            }`}
+          >
+            {tag}
+          </button>
+        ))}
+      </section>
+
+      <main class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pt-4" id="project-grid-container">
+        {projects && projects.length > 0 ? (
+          projects.map((project: any) => (
+            <div 
+              class="project-gallery-card group relative rounded-2xl bg-white border border-zinc-200 dark:bg-zinc-900/20 dark:border-zinc-900 flex flex-col justify-between overflow-hidden shadow-sm hover:border-emerald-500/30 transition-all duration-300 opacity-0 transform scale-95"
+              data-project-tags={JSON.stringify(project.tags || [])}
+            >
+              <a 
+                href={`/proyek/${project.slug?.current}`} 
+                class="absolute inset-0 z-10 cursor-pointer" 
+                aria-label={`Lihat detail studi kasus ${project.title}`}
+              ></a>
+
+              <div class="w-full h-44 overflow-hidden bg-zinc-100 dark:bg-zinc-950 select-none relative">
+                {project.imageUrl ? (
+                  <img src={project.imageUrl} alt={project.title} class="w-full h-full object-cover group-hover:scale-103 transition-transform duration-700 ease-out" loading="lazy" />
+                ) : (
+                  <div class="w-full h-full flex items-center justify-center font-mono text-[10px] text-zinc-500">No Blueprint Matrix</div>
+                )}
+              </div>
+
+              <div class="p-5 flex-1 flex flex-col justify-between space-y-5">
+                <div class="space-y-2.5">
+                  <h2 class="text-lg font-bold tracking-tight text-zinc-800 dark:text-zinc-100 group-hover:text-emerald-500 transition-colors line-clamp-1">
+                    {project.title}
+                  </h2>
+                  <p class="text-xs text-zinc-400 dark:text-zinc-500 font-medium leading-relaxed line-clamp-3">
+                    {project.description || "Tidak ada deskripsi tambahan untuk cetak biru sistem teknologi ini."}
+                  </p>
+                  
+                  <div class="flex flex-wrap gap-1 pt-1">
+                    {project.tags?.map((tag: string) => (
+                      <span class="text-[9px] font-mono font-bold px-2 py-0.5 rounded bg-zinc-100 text-zinc-500 dark:bg-zinc-900/60 dark:text-zinc-400 border border-zinc-200/50 dark:border-zinc-900">{tag}</span>
+                    ))}
+                  </div>
+                </div>
+
+                <div class="flex items-center gap-3 border-t border-zinc-100 dark:border-zinc-900 pt-3.5 text-xs font-mono font-bold relative z-20">
+                  {project.liveLink && (
+                    <a href={project.liveLink} target="_blank" rel="noopener noreferrer" class="text-emerald-600 dark:text-emerald-400 hover:underline flex items-center gap-1">
+                      Live App ↗
+                    </a>
+                  )}
+                  {project.gitLink && (
+                    <a href={project.gitLink} target="_blank" rel="noopener noreferrer" class="text-zinc-400 hover:text-zinc-800 dark:hover:text-zinc-200 transition-colors">
+                      Repository
+                    </a>
+                  )}
+                </div>
+              </div>
+            </div>
+          ))
+        ) : (
+          <p class="text-sm italic text-zinc-400 col-span-full">Belum ada proyek yang terdaftar di Sanity Studio.</p>
+        )}
+      </main>
+
+      <Footer name={profile?.name} />
+    </div>
+
+  </body>
+</html>
+
+<script>
+  import { gsap } from 'gsap';
+
+  function initProjectGalleryEngine() {
+    const header = document.getElementById('project-header');
+    const filterBar = document.getElementById('project-filter-bar');
+    const cards = document.querySelectorAll('.project-gallery-card');
+    const filterButtons = document.querySelectorAll('.filter-trigger-btn');
+
+    if (header) gsap.to(header, { opacity: 1, y: 0, duration: 0.6, ease: "power2.out" });
+    if (filterBar) gsap.to(filterBar, { opacity: 1, y: 0, duration: 0.6, ease: "power2.out", delay: 0.1 });
+    
+    if (cards.length > 0) {
+      gsap.to(cards, {
+        opacity: 1,
+        scale: 1,
+        stagger: 0.08,
+        duration: 0.6,
+        ease: "power3.out",
+        delay: 0.2
+      });
+    }
+
+    filterButtons.forEach(btn => {
+      btn.addEventListener('click', (e: any) => {
+        const targetTag = e.currentTarget.getAttribute('data-filter');
+
+        filterButtons.forEach(b => {
+          b.className = "filter-trigger-btn px-4 py-2 text-xs font-mono font-bold uppercase rounded-xl border transition-all cursor-pointer select-none bg-white dark:bg-zinc-950 border-zinc-200 dark:border-zinc-900 text-zinc-400 dark:text-zinc-500 hover:border-emerald-500/40 hover:text-emerald-500";
+        });
+        e.currentTarget.className = "filter-trigger-btn px-4 py-2 text-xs font-mono font-bold uppercase rounded-xl border transition-all cursor-pointer select-none bg-emerald-500 border-emerald-500 text-zinc-950 shadow-md shadow-emerald-500/10 active-filter";
+
+        cards.forEach((card: any) => {
+          const cardTags = JSON.parse(card.getAttribute('data-project-tags') || '[]');
+          const isMatched = targetTag === 'Semua' || cardTags.includes(targetTag);
+
+          if (isMatched) {
+            gsap.killTweensOf(card);
+            card.style.display = 'flex';
+            gsap.to(card, { opacity: 1, scale: 1, duration: 0.4, ease: "power2.out" });
+          } else {
+            gsap.killTweensOf(card);
+            gsap.to(card, {
+              opacity: 0,
+              scale: 0.9,
+              duration: 0.3,
+              ease: "power2.in",
+              onComplete: () => { card.style.display = 'none'; }
+            });
+          }
+        });
+      });
+    });
+  }
+
+  document.addEventListener('astro:page-load', initProjectGalleryEngine);
+</script>

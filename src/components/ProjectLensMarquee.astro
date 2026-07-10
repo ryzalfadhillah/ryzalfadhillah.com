@@ -1,0 +1,63 @@
+---
+// src/components/ProjectLensMarquee.astro
+const { projects } = Astro.props;
+const tripleProjects = projects ? [...projects, ...projects, ...projects] : [];
+---
+<section class="space-y-4" id="spatial-marquee-section">
+  <div class="flex justify-between items-baseline px-1">
+    <h2 class="text-xs font-bold uppercase tracking-widest text-zinc-400 dark:text-zinc-500 border-l-2 border-emerald-500 pl-3">Proyek</h2>
+    <span class="text-[10px] font-mono text-zinc-400 dark:text-zinc-50">// Hover untuk Berhenti & Fokus</span>
+  </div>
+  <div class="w-full relative overflow-hidden py-8 bg-zinc-100/30 dark:bg-zinc-900/10 border border-zinc-200 dark:border-zinc-900 rounded-3xl" style="perspective: 1200px;">
+    <div id="lens-marquee-track" class="flex gap-8 items-center whitespace-nowrap will-change-transform py-4" style="transform-style: preserve-3d; width: max-content;">
+      {tripleProjects.map((project: any) => (
+        <div class="lens-project-card w-[280px] sm:w-[360px] h-[380px] sm:h-[440px] bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800/80 rounded-[28px] overflow-hidden flex flex-col justify-between shadow-xl inline-block whitespace-normal select-none" style="transform-style: preserve-3d;">
+          <div class="w-full h-[45%] overflow-hidden relative bg-zinc-950">
+            <img src={project.imageUrl || "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=800"} alt={project.title} class="w-full h-full object-cover opacity-85" />
+            <div class="absolute inset-0 bg-gradient-to-t from-white dark:from-zinc-900 to-transparent opacity-90"></div>
+          </div>
+          <div class="p-6 flex-1 flex flex-col justify-between space-y-4">
+            <div class="space-y-1">
+              <h3 class="font-black text-lg text-zinc-900 dark:text-zinc-50 tracking-tight">{project.title}</h3>
+              <p class="text-xs text-zinc-500 dark:text-zinc-400 line-clamp-3 pt-1">{project.description}</p>
+            </div>
+            <div class="flex gap-4 text-xs font-bold border-t border-zinc-100 dark:border-zinc-800/60 pt-2">
+              {project.liveLink && <a href={project.liveLink} target="_blank" class="text-emerald-600 dark:text-emerald-400">Demo ↗</a>}
+              {project.gitLink && <a href={project.gitLink} target="_blank" class="text-zinc-400">Source</a>}
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  </div>
+</section>
+
+<script>
+  import { gsap } from 'gsap';
+
+  document.addEventListener('astro:page-load', () => {
+    const track = document.getElementById('lens-marquee-track');
+    const cards = document.querySelectorAll('.lens-project-card');
+
+    if (track && cards.length > 0) {
+      const trackWidth = track.scrollWidth / 3;
+      const marqueeTween = gsap.to(track, { x: -trackWidth, ease: "none", duration: 22, repeat: -1 });
+      track.addEventListener('mouseenter', () => marqueeTween.pause());
+      track.addEventListener('mouseleave', () => marqueeTween.play());
+
+      gsap.ticker.add(() => {
+        const center = window.innerWidth / 2;
+        cards.forEach(card => {
+          const rect = card.getBoundingClientRect(); const cardCenter = rect.left + rect.width / 2;
+          const ratio = (cardCenter - center) / (window.innerWidth / 2); const absRatio = Math.abs(ratio);
+          if (absRatio < 1.5) {
+            gsap.set(card, {
+              scale: 1 - (absRatio * 0.14), opacity: 1 - (absRatio * 0.45), rotationY: ratio * -24, z: absRatio * -120,
+              transformPerspective: 1000, filter: `blur(${Math.max(0, (absRatio - 0.2) * 5)}px)`, overwrite: "auto"
+            });
+          }
+        });
+      });
+    }
+  });
+</script>

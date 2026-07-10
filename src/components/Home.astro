@@ -1,0 +1,60 @@
+---
+// src/components/Home.astro
+import Header from './Header.astro';
+import Hero from './Hero.astro';
+import TechMarquee from './TechMarquee.astro';
+import LinguisticBars from './LinguisticBars.astro';
+import QuantumCore from './QuantumCore.astro';
+import TerminalLogs from './TerminalLogs.astro';
+import GithubGraph from './GithubGraph.astro';
+import Certifications from './Certifications.astro';
+import TimelineSection from './TimelineSection.astro';
+import ProjectLensMarquee from './ProjectLensMarquee.astro';
+import LatestArticles from './LatestArticles.astro';
+import Contact from './Contact.astro';
+import Footer from './Footer.astro';
+import AudioPlayer from './AudioPlayer.astro';
+
+const { profile, projects, latestArticles, tracks } = Astro.props;
+---
+
+<div class="max-w-5xl mx-auto px-4 sm:px-6 py-12 space-y-16 relative">
+  <Header githubUsername={profile?.githubUsername} />
+  
+  <Hero 
+    name={profile?.name} 
+    bio={profile?.bio} 
+    cvUrl={profile?.cvUrl} 
+    socialLinks={profile?.socialLinks} 
+  />
+  
+  <section class="space-y-10 pt-4">
+    <TechMarquee skills={profile?.skills} />
+    
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-12 pt-2 items-stretch">
+      <div class="flex flex-col justify-between h-full space-y-8">
+        <LinguisticBars languages={profile?.languages} />
+        
+        <AudioPlayer tracks={tracks} />
+        
+        <QuantumCore />
+      </div>
+      
+      <TerminalLogs focusCompetency={profile?.focusCompetency} />
+    </div>
+  </section>
+
+  <GithubGraph githubUsername={profile?.githubUsername} />
+  <Certifications certifications={profile?.certifications} />
+  <TimelineSection experiences={profile?.experiences} education={profile?.education} />
+  <ProjectLensMarquee projects={projects} />
+  <LatestArticles latestArticles={latestArticles} />
+  
+  <Contact 
+    contactHeading={profile?.contactHeading} 
+    contactDescription={profile?.contactDescription} 
+    contactEmail={profile?.contactEmail} 
+  />
+  
+  <Footer name={profile?.name} />
+</div>

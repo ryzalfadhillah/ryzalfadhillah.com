@@ -1,0 +1,67 @@
+---
+// src/components/TerminalLogs.astro
+const { focusCompetency } = Astro.props;
+---
+<div class="space-y-4 relative flex flex-col w-full">
+  <h3 class="text-[10px] font-bold uppercase tracking-widest text-zinc-400 dark:text-zinc-500 border-b border-zinc-200 dark:border-zinc-900 pb-2">Engineering Domain</h3>
+  
+  <div id="ide-terminal-container" class="relative rounded-2xl bg-white text-zinc-700 border border-zinc-200 p-4 font-mono text-xs sm:text-sm shadow-2xl overflow-hidden flex-1 flex flex-col dark:bg-[#0d0e15] dark:text-zinc-400 dark:border-zinc-800 w-full" style="transform-style: preserve-3d;">
+    <div class="flex items-center justify-between border-b border-zinc-200 pb-3 mb-4 shrink-0 dark:border-zinc-800/80">
+      <div class="flex gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-red-500/70"></span><span class="w-2.5 h-2.5 rounded-full bg-yellow-500/70"></span><span class="w-2.5 h-2.5 rounded-full bg-green-500/70"></span></div>
+      <span class="text-[10px] text-zinc-400 tracking-tight font-medium dark:text-zinc-600">domain_matrix.log</span>
+      <span class="text-[10px] text-zinc-400 dark:text-zinc-700">UTF-8</span>
+    </div>
+
+    <div id="ide-glow-aura" class="absolute pointer-events-none w-48 h-48 rounded-full bg-emerald-500/5 blur-3xl opacity-0 group-hover/ide:opacity-100 transition-opacity duration-700" style="transform: translate(-50%, -50%);"></div>
+
+    <div class="space-y-3 relative z-10 flex-1 overflow-y-auto pr-1" id="ide-lines-stack" style="transform: translateZ(30px);">
+      {focusCompetency ? focusCompetency.split('.').filter((s: string) => s.trim().length > 0).map((sentence: string, idx: number) => (
+        <div class="flex gap-4 ide-row-line opacity-25 transition-opacity duration-300 will-change-transform items-start">
+          <span class="text-zinc-400 dark:text-zinc-700 text-right select-none text-[11px] font-medium w-5 pt-0.5">0{idx + 1}</span>
+          <p class="text-zinc-600 dark:text-zinc-400 font-medium leading-relaxed flex-1 tracking-wide">
+            <span class="text-emerald-500 font-bold">&gt;</span> {sentence.trim()}.
+          </p>
+        </div>
+      )) : (
+        <p class="text-xs text-zinc-400 italic">No diagnostic logs found.</p>
+      )}
+    </div>
+  </div>
+</div>
+
+<script>
+  import { gsap } from 'gsap';
+  import { ScrollTrigger } from 'gsap/ScrollTrigger';
+  gsap.registerPlugin(ScrollTrigger);
+
+  document.addEventListener('astro:page-load', () => {
+    const ideContainer = document.getElementById('ide-terminal-container');
+    const ideTorch = document.getElementById('ide-glow-aura');
+    const ideRows = document.querySelectorAll('.ide-row-line');
+
+    if (ideContainer && ideRows.length > 0) {
+      gsap.to(ideRows, {
+        scrollTrigger: { trigger: ideContainer, start: "top 85%", end: "bottom 65%", scrub: 0.5 },
+        opacity: 1, stagger: 0.2, ease: "power2.out"
+      });
+
+      ideContainer.addEventListener('mousemove', (e: MouseEvent) => {
+        const rect = ideContainer.getBoundingClientRect(); const x = e.clientX - rect.left; const y = e.clientY - rect.top;
+        const xTilt = (x - rect.width / 2) / (rect.width / 2); const yTilt = (y - rect.height / 2) / (rect.height / 2);
+        const isDark = document.documentElement.classList.contains('dark');
+        
+        gsap.to(ideContainer, {
+          rotationY: xTilt * 8, rotationX: -yTilt * 8, transformPerspective: 1200,
+          boxShadow: `0 0 35px 5px ${isDark ? "rgba(16, 185, 129, 0.22)" : "rgba(5, 150, 105, 0.12)"}, 0 25px 50px -12px rgba(0, 0, 0, 0.15)`,
+          borderColor: isDark ? "rgba(16, 185, 129, 0.3)" : "rgba(5, 150, 105, 0.4)", duration: 0.3
+        });
+        if (ideTorch) { gsap.to(ideTorch, { left: `${x}px`, top: `${y}px`, duration: 0.2 }); }
+      });
+
+      ideContainer.addEventListener('mouseleave', () => {
+        const isDark = document.documentElement.classList.contains('dark');
+        gsap.to(ideContainer, { rotationY: 0, rotationX: 0, borderColor: isDark ? "rgb(39, 39, 42)" : "rgb(228, 228, 231)", duration: 0.6 });
+      });
+    }
+  });
+</script>

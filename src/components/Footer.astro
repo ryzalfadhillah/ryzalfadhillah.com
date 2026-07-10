@@ -1,0 +1,8 @@
+---
+// src/components/Footer.astro
+const { name } = Astro.props;
+---
+<footer class="pt-4 flex flex-col sm:flex-row justify-between items-center gap-4 text-xs text-zinc-400 dark:text-zinc-600">
+  <p>© 2026 {name || "Ryzal Fadhillah"}. Made using Astro & Sanity.</p>
+  <a href="#" class="hover:underline">Back to top ↑</a>
+</footer>

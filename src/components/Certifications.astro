@@ -1,0 +1,21 @@
+---
+// src/components/Certifications.astro
+const { certifications } = Astro.props;
+---
+<section class="space-y-4">
+  <h2 class="text-xs font-bold uppercase tracking-widest text-zinc-400 dark:text-zinc-500 border-l-2 border-emerald-500 pl-3">Sertifikasi & Training</h2>
+  <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+    {certifications && certifications.length > 0 ? (
+      certifications.map((cert: any) => (
+        <div class="p-5 bg-zinc-100 dark:bg-zinc-900/50 border border-zinc-200/60 dark:border-zinc-900 rounded-2xl flex justify-between items-center group hover:border-emerald-500/30 dark:hover:border-emerald-500/30 transition-all duration-300 shadow-sm">
+          <div>
+            <h3 class="font-bold text-sm text-zinc-800 dark:text-zinc-200 group-hover:text-emerald-500 transition-colors">{cert.title}</h3>
+            <p class="text-xs text-zinc-500 mt-0.5">{cert.issuer} • {cert.year}</p>
+          </div>
+        </div>
+      ))
+    ) : (
+      <p class="text-xs text-zinc-500 italic col-span-2">Belum ada sertifikasi yang diinput di Sanity.</p>
+    )}
+  </div>
+</section>

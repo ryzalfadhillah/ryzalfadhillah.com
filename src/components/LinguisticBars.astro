@@ -1,0 +1,28 @@
+---
+// src/components/LinguisticBars.astro
+const { languages } = Astro.props;
+---
+<div class="space-y-4 shrink-0">
+  <h3 class="text-[10px] font-bold uppercase tracking-widest text-zinc-400 dark:text-zinc-500 border-b border-zinc-200 dark:border-zinc-900 pb-2">Linguistic Bandwidth</h3>
+  <div class="space-y-4">
+    {languages && languages.length > 0 ? (
+      languages.map((lang: any) => {
+        const isNative = lang.level?.toLowerCase().includes('native');
+        const barWidth = isNative ? 'w-full' : 'w-[80%]';
+        return (
+          <div class="space-y-1.5 group">
+            <div class="flex justify-between text-sm items-baseline">
+              <span class="font-extrabold text-zinc-800 dark:text-zinc-200 group-hover:text-emerald-400 transition-colors duration-300">{lang.language}</span>
+              <span class="text-[10px] font-mono text-zinc-400 uppercase tracking-wider">{lang.level}</span>
+            </div>
+            <div class="w-full h-[3px] bg-zinc-200 dark:bg-zinc-900 rounded-full overflow-hidden relative">
+              <div class={`h-full bg-gradient-to-r from-emerald-500 to-teal-400 rounded-full origin-left group-hover:scale-x-[1.03] transition-transform duration-500 ease-out ${barWidth}`}></div>
+            </div>
+          </div>
+        );
+      })
+    ) : (
+      <p class="text-xs text-zinc-500 italic">Belum ada data bahasa.</p>
+    )}
+  </div>
+</div>

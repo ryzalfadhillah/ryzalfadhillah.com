@@ -1,0 +1,32 @@
+---
+// src/components/LatestArticles.astro
+const { latestArticles } = Astro.props;
+---
+<section class="space-y-4">
+  <h2 class="text-xs font-bold uppercase tracking-widest text-zinc-400 dark:text-zinc-500 border-l-2 border-emerald-500 pl-3">Artikel & Catatan Terbaru</h2>
+  <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+    {latestArticles && latestArticles.length > 0 ? (
+      latestArticles.map((article: any) => (
+        <a href={`/artikel/${article.slug?.current}`} class="article-card p-5 bg-zinc-100 dark:bg-zinc-900/50 border border-zinc-200/60 dark:border-zinc-900 rounded-2xl block group hover:border-emerald-500/50 dark:hover:border-emerald-500/50 transition-all shadow-sm">
+          <h3 class="font-bold text-sm sm:text-base text-zinc-800 dark:text-zinc-200 group-hover:text-emerald-500 transition-colors">{article.title}</h3>
+          <span class="text-xs text-emerald-600 dark:text-emerald-400 font-medium inline-block mt-2">
+            Baca Tulisan <span class="article-arrow inline-block transition-transform">→</span>
+          </span>
+        </a>
+      ))
+    ) : (
+      <p class="text-sm italic text-zinc-400 px-1">Belum ada artikel yang di-publish.</p>
+    )}
+  </div>
+</section>
+
+<script>
+  import { gsap } from 'gsap';
+  document.addEventListener('astro:page-load', () => {
+    document.querySelectorAll('.article-card').forEach(card => {
+      const arrow = card.querySelector('.article-arrow');
+      card.addEventListener('mouseenter', () => { if (arrow) gsap.to(arrow, { x: 5, duration: 0.4, repeat: -1, yoyo: true }); });
+      card.addEventListener('mouseleave', () => { if (arrow) gsap.to(arrow, { x: 0, duration: 0.3, overwrite: "auto" }); });
+    });
+  });
+</script>

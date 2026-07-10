@@ -1,0 +1,241 @@
+---
+// src/components/AudioPlayer.astro
+const { tracks } = Astro.props;
+
+// 🚀 SMART MAPPING: Memetakan data YouTube Music dari Sanity secara presisi
+const sanityTracks = tracks?.map((track: any) => ({
+  trackTitle: track.trackTitle || "Untitled Track",
+  artist: track.artist || "Unknown Artist",
+  youtubeUrl: track.youtubeUrl || ""
+})).filter((track: any) => track.youtubeUrl);
+
+// Fallback jika database Sanity kamu sedang kosong atau dalam proses build
+const finalTracks = sanityTracks && sanityTracks.length > 0 ? sanityTracks : [
+  { trackTitle: "Every Summertime", artist: "NIKI", youtubeUrl: "https://music.youtube.com/watch?v=J7p4bzqlvCw" },
+  { trackTitle: "Cyber Ambient Drive (Fallback)", artist: "Lofi Core", youtubeUrl: "https://music.youtube.com/watch?v=J7p4bzqlvCw" }
+];
+---
+
+<div id="cyber-audio-widget" class="relative w-full p-5 rounded-2xl bg-zinc-100/40 border border-zinc-200/80 dark:bg-zinc-900/10 dark:border-zinc-900/60 overflow-hidden flex flex-col justify-between shadow-sm group/audio min-h-[130px] transition-all duration-300 opacity-0 transform translate-y-8">
+  
+  <div class="flex items-center justify-between gap-4 z-10">
+    <div class="flex flex-col overflow-hidden pointer-events-none">
+      <span class="text-[10px] font-mono font-bold uppercase tracking-widest text-zinc-400 dark:text-zinc-500 mb-0.5">// YouTube Audio Stream Node</span>
+      <div class="relative overflow-hidden z-10">
+        <span id="player-track-title" class="text-sm font-bold text-zinc-800 dark:text-zinc-100 truncate font-mono block">Loading Track...</span>
+        <span id="player-track-artist" class="text-xs text-zinc-400 dark:text-zinc-500 font-medium font-mono block truncate">Please wait</span>
+      </div>
+    </div>
+    
+    <div id="audio-wave-bars" class="flex items-end gap-[2px] h-3.5 shrink-0 transition-opacity opacity-40">
+      <div class="w-[2px] bg-emerald-500 h-full origin-bottom rounded-full wave-bar"></div>
+      <div class="w-[2px] bg-emerald-500 h-2/3 origin-bottom rounded-full wave-bar"></div>
+      <div class="w-[2px] bg-emerald-500 h-4/5 origin-bottom rounded-full wave-bar"></div>
+    </div>
+  </div>
+
+  <div class="pointer-events-none absolute opacity-0 w-[1px] h-[1px] overflow-hidden bottom-0 left-0">
+    <div id="yt-hidden-player"></div>
+  </div>
+
+  <div class="flex items-center justify-between gap-2 border-t border-zinc-200/60 dark:border-zinc-900/50 pt-3 mt-2 z-10">
+    <div class="flex items-center gap-1.5">
+      <button id="audio-prev-track" class="p-2 border border-zinc-200 dark:border-zinc-800 hover:border-emerald-500/40 text-zinc-400 hover:text-emerald-500 rounded-xl transition-all cursor-pointer bg-white dark:bg-zinc-950 shadow-sm email-magnetic-btn" aria-label="Previous Track">
+        <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24"><path d="M11.5 12l8.5 6V6l-8.5 6zm-9 6h2V6h-2v12z"/></svg>
+      </button>
+
+      <button id="audio-play-toggle" class="p-2 bg-emerald-500 hover:bg-emerald-400 text-zinc-950 rounded-xl transition-all cursor-pointer shadow-sm shadow-emerald-500/10 email-magnetic-btn" aria-label="Play/Pause">
+        <svg id="play-svg-icon" class="w-3.5 h-3.5 block" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+        <svg id="pause-svg-icon" class="w-3.5 h-3.5 hidden" fill="currentColor" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+      </button>
+
+      <button id="audio-next-track" class="p-2 border border-zinc-200 dark:border-zinc-800 hover:border-emerald-500/40 text-zinc-400 hover:text-emerald-500 rounded-xl transition-all cursor-pointer bg-white dark:bg-zinc-950 shadow-sm email-magnetic-btn" aria-label="Next Track">
+        <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24"><path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/></svg>
+      </button>
+    </div>
+
+    <div class="relative inline-block text-left">
+      <select id="audio-track-selector" class="block w-full max-w-[130px] px-2 py-1.5 rounded-lg text-[10px] font-mono font-bold bg-zinc-100 dark:bg-zinc-900 text-zinc-600 dark:text-zinc-400 border border-zinc-200 dark:border-zinc-800 focus:outline-none focus:border-emerald-500/40 cursor-pointer">
+        {finalTracks.map((track, idx) => (
+          <option value={idx} data-url={track.youtubeUrl} data-title={track.trackTitle} data-artist={track.artist}>
+            {track.trackTitle}
+          </option>
+        ))}
+      </select>
+    </div>
+  </div>
+</div>
+
+<style>
+  @keyframes dance-wave {
+    0% { transform: scaleY(0.3); }
+    50% { transform: scaleY(1); }
+    100% { transform: scaleY(0.3); }
+  }
+  .animate-wave-bar .wave-bar:nth-child(1) { animation: dance-wave 0.6s ease-in-out infinite alternate; }
+  .animate-wave-bar .wave-bar:nth-child(2) { animation: dance-wave 0.4s ease-in-out infinite alternate 0.1s; }
+  .animate-wave-bar .wave-bar:nth-child(3) { animation: dance-wave 0.8s ease-in-out infinite alternate 0.2s; }
+</style>
+
+<script>
+  import { gsap } from 'gsap';
+
+  let ytPlayer: any;
+  let tracksData: any[] = [];
+  let currentTrackIndex = 0;
+  let isPlaying = false;
+
+  function extractYouTubeId(url: string) {
+    if (!url) return null;
+    const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+    const match = url.match(regExp);
+    return (match && match[2].length === 11) ? match[2] : null;
+  }
+
+  function initAudioEngine() {
+    const selector = document.getElementById('audio-track-selector') as HTMLSelectElement;
+    const playBtn = document.getElementById('audio-play-toggle');
+    const prevBtn = document.getElementById('audio-prev-track');
+    const nextBtn = document.getElementById('audio-next-track');
+    const titleEl = document.getElementById('player-track-title');
+    const artistEl = document.getElementById('player-track-artist');
+    const waveContainer = document.getElementById('audio-wave-bars');
+    const playIcon = document.getElementById('play-svg-icon');
+    const pauseIcon = document.getElementById('pause-svg-icon');
+    const widget = document.getElementById('cyber-audio-widget');
+
+    if (!selector) return;
+
+    tracksData = Array.from(selector.options).map((opt: any) => ({
+      id: extractYouTubeId(opt.getAttribute('data-url')),
+      title: opt.getAttribute('data-title'),
+      artist: opt.getAttribute('data-artist')
+    })).filter(t => t.id !== null);
+
+    if (tracksData.length === 0) return;
+
+    function syncUI(index: number) {
+      const activeTrack = tracksData[index];
+      const textElements = [titleEl, artistEl];
+      gsap.killTweensOf(textElements);
+      gsap.to(textElements, {
+        opacity: 0, y: -5, duration: 0.15,
+        onComplete: () => {
+          if (titleEl) titleEl.innerText = activeTrack.title;
+          if (artistEl) artistEl.innerText = activeTrack.artist;
+          selector.value = index.toString();
+          gsap.fromTo(textElements, { opacity: 0, y: 5 }, { opacity: 1, y: 0, duration: 0.15 });
+        }
+      });
+    }
+
+    function loadYouTubePlayer() {
+      if (!window.YT) {
+        const tag = document.createElement('script');
+        tag.src = "https://www.youtube.com/iframe_api";
+        const firstScriptTag = document.getElementsByTagName('script')[0];
+        firstScriptTag.parentNode?.insertBefore(tag, firstScriptTag);
+        window.onYouTubeIframeAPIReady = () => buildPlayerInstance();
+      } else {
+        buildPlayerInstance();
+      }
+    }
+
+    function buildPlayerInstance() {
+      if (ytPlayer && ytPlayer.destroy) {
+        try { ytPlayer.destroy(); } catch(e) {}
+      }
+
+      // 🌟 FIX: Atur tinggi & lebar minimal 1px agar iFrame dianggap valid oleh browser
+      ytPlayer = new window.YT.Player('yt-hidden-player', {
+        height: '1', width: '1',
+        videoId: tracksData[currentTrackIndex].id,
+        playerVars: { 'autoplay': 0, 'controls': 0, 'disablekb': 1, 'rel': 0 },
+        events: {
+          'onReady': (event: any) => {
+            // Skenario Auto-play saat klik pertama di layar
+            const triggerInitialPlay = () => {
+              event.target.playVideo();
+              document.removeEventListener('click', triggerInitialPlay);
+            };
+            document.addEventListener('click', triggerInitialPlay);
+          },
+          'onStateChange': (event: any) => {
+            if (event.data === 1) { // PLAYING
+              isPlaying = true;
+              playIcon?.classList.add('hidden'); pauseIcon?.classList.remove('hidden');
+              waveContainer?.classList.add('animate-wave-bar');
+              gsap.to(waveContainer, { opacity: 1, duration: 0.3 });
+            } else if (event.data === 0) { // ENDED
+              let nextIndex = currentTrackIndex + 1;
+              if (nextIndex >= tracksData.length) nextIndex = 0;
+              switchTrack(nextIndex);
+            } else { // PAUSED / BUFFERING
+              isPlaying = false;
+              playIcon?.classList.remove('hidden'); pauseIcon?.classList.add('hidden');
+              waveContainer?.classList.remove('animate-wave-bar');
+              gsap.to(waveContainer, { opacity: 0.4, duration: 0.3 });
+            }
+          }
+        }
+      });
+    }
+
+    function switchTrack(index: number) {
+      currentTrackIndex = index;
+      syncUI(index);
+      if (ytPlayer && ytPlayer.loadVideoById) {
+        ytPlayer.loadVideoById(tracksData[index].id);
+      }
+    }
+
+    selector.addEventListener('change', (e: any) => {
+      switchTrack(parseInt(e.target.value));
+    });
+
+    playBtn?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (!ytPlayer || !ytPlayer.pauseVideo) return;
+      if (isPlaying) ytPlayer.pauseVideo(); else ytPlayer.playVideo();
+    });
+
+    prevBtn?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      let prevIndex = currentTrackIndex - 1;
+      if (prevIndex < 0) prevIndex = tracksData.length - 1;
+      switchTrack(prevIndex);
+    });
+
+    nextBtn?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      let nextIndex = currentTrackIndex + 1;
+      if (nextIndex >= tracksData.length) nextIndex = 0;
+      switchTrack(nextIndex);
+    });
+
+    // Efek GSAP Hover Magnetic & Entry Animation
+    const controls = [prevBtn, playBtn, nextBtn];
+    controls.forEach(btn => {
+      if (!btn) return;
+      btn.addEventListener('mousemove', (e: MouseEvent) => {
+        const rect = btn.getBoundingClientRect();
+        gsap.to(btn, { x: (e.clientX - rect.left - rect.width/2) * 0.35, y: (e.clientY - rect.top - rect.height/2) * 0.35, scale: 1.05, duration: 0.2 });
+      });
+      btn.addEventListener('mouseleave', () => {
+        gsap.to(btn, { x: 0, y: 0, scale: 1, duration: 0.6, ease: "elastic.out(1, 0.35)" });
+      });
+    });
+
+    if (widget) {
+      gsap.killTweensOf(widget);
+      gsap.fromTo(widget, { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.8, ease: "power2.out", delay: 0.2 });
+    }
+
+    // 🌟 FIX: Tampilkan UI teks judul lagu pertama secara instan tanpa menunggu iFrame siap
+    syncUI(currentTrackIndex);
+    loadYouTubePlayer();
+  }
+
+  declare global { interface Window { YT: any; onYouTubeIframeAPIReady: (() => void) | undefined; } }
+  document.addEventListener('astro:page-load', initAudioEngine);
+</script>

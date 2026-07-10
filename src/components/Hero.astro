@@ -1,0 +1,63 @@
+---
+// src/components/Hero.astro
+const { name, bio, cvUrl, socialLinks } = Astro.props;
+---
+<section class="grid grid-cols-1 md:grid-cols-3 gap-8 items-center">
+  <div class="md:col-span-2 space-y-6">
+    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-xs font-semibold animate-pulse">
+      <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Live Node Active
+    </div>
+    <h1 class="text-4xl sm:text-5xl font-black tracking-tight leading-tight text-zinc-900 dark:text-zinc-50">
+      Hi, I am {name || "Ryzal"}
+    </h1>
+    <p class="text-zinc-600 dark:text-zinc-400 text-base sm:text-lg leading-relaxed max-w-2xl">
+      {bio || "Data biografi belum terisi di Sanity Studio."}
+    </p>
+    <div class="flex flex-wrap gap-4 items-center pt-2">
+      {cvUrl && (
+        <a href={cvUrl} target="_blank" class="px-5 py-2.5 bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-bold text-sm rounded-xl transition-all shadow-lg shadow-emerald-500/10">
+          Unduh Resume (PDF)
+        </a>
+      )}
+      <div class="flex gap-4 text-sm text-zinc-400 dark:text-zinc-500 font-semibold">
+        {socialLinks?.map((link: string) => (
+          <a href={link} target="_blank" class="hover:text-emerald-500 transition-colors">
+            {link.includes('github') ? 'GitHub ↗' : link.includes('linkedin') ? 'LinkedIn ↗' : 'Tautan'}
+          </a>
+        ))}
+      </div>
+    </div>
+  </div>
+  
+  <div id="hero-interactive-card" class="bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-3xl p-6 h-[260px] flex flex-col justify-between shadow-sm relative overflow-hidden group cursor-pointer">
+    <div class="absolute inset-0 bg-gradient-to-br from-emerald-500/5 to-teal-500/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+    <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
+      <div class="absolute w-full h-full opacity-5 dark:opacity-15 bg-[linear-gradient(to_right,#808080_1px,transparent_1px),linear-gradient(to_bottom,#808080_1px,transparent_1px)] bg-[size:16px_16px]"></div>
+      <div id="interactive-orb" class="w-28 h-28 rounded-full bg-gradient-to-tr from-emerald-400 to-cyan-500 opacity-20 dark:opacity-25 blur-xl transition-transform duration-300 ease-out"></div>
+      <div class="absolute font-mono text-[11px] text-emerald-600 dark:text-emerald-400/50 bg-white dark:bg-zinc-950 px-2 py-1 rounded-md border border-zinc-200 dark:border-zinc-800 shadow-sm font-bold tracking-widest animate-pulse">&lt; CODE /&gt;</div>
+    </div>
+    <div class="relative z-10 flex justify-between items-start">
+      <span class="text-[10px] font-bold uppercase tracking-widest text-zinc-400 dark:text-zinc-500">Interactive Node</span>
+    </div>
+    <div class="relative z-10">
+      <p class="text-[11px] font-mono text-zinc-400 dark:text-zinc-500 group-hover:text-emerald-500 transition-colors">// Hover & drag kursor di sini</p>
+      <h3 class="font-black text-base text-zinc-800 dark:text-zinc-100 mt-0.5">Creative Sandbox</h3>
+    </div>
+  </div>
+</section>
+
+<script>
+  document.addEventListener('astro:page-load', () => {
+    const card = document.getElementById('hero-interactive-card');
+    const orb = document.getElementById('interactive-orb');
+    card?.addEventListener('mousemove', (e: MouseEvent) => {
+      const rect = card.getBoundingClientRect();
+      const x = e.clientX - rect.left - rect.width / 2;
+      const y = e.clientY - rect.top - rect.height / 2;
+      if (orb) orb.style.transform = `translate(${x * 0.3}px, ${y * 0.3}px) scale(1.15)`;
+    });
+    card?.addEventListener('mouseleave', () => {
+      if (orb) orb.style.transform = `translate(0px, 0px) scale(1)`;
+    });
+  });
+</script>

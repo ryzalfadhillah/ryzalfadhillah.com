@@ -1,0 +1,16 @@
+---
+// src/components/ThemeToggleScript.astro
+// Komponen utilitas murni internal script
+---
+<script>
+  function attachThemeToggle() {
+    const toggle = document.getElementById('theme-toggle');
+    toggle?.addEventListener('click', () => {
+      const el = document.documentElement; el.classList.toggle('dark');
+      localStorage.setItem('theme', el.classList.contains('dark') ? 'dark' : 'light');
+      window.dispatchEvent(new Event('theme-changed'));
+    });
+  }
+  attachThemeToggle();
+  document.addEventListener('astro:after-swap', attachThemeToggle);
+</script>

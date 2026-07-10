@@ -1,8 +1,16 @@
+// astro.config.mjs
 import { defineConfig } from 'astro/config';
-import tailwindcss from '@tailwindcss/vite';
+import react from '@astrojs/react';
+import tailwind from '@astrojs/tailwind';
 
 export default defineConfig({
+  integrations: [react(), tailwind()],
   vite: {
-    plugins: [tailwindcss()], // Cukup konfigurasi Tailwind v4 saja
-  },
+    optimizeDeps: {
+      exclude: ['sanity', 'styled-components']
+    },
+    ssr: {
+      external: ['@sanity/client', 'sanity']
+    }
+  }
 });

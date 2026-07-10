@@ -1,0 +1,124 @@
+---
+// src/components/QuantumCore.astro
+---
+<div id="quantum-core-container" class="relative flex-1 rounded-2xl bg-zinc-100/40 border border-zinc-200/80 dark:bg-zinc-900/10 dark:border-zinc-900/60 overflow-hidden flex flex-col justify-between p-6 shadow-sm group/quantum min-h-[260px]">
+  <canvas id="quantum-core-canvas" class="absolute inset-0 w-full h-full pointer-events-none z-0"></canvas>
+  
+  <div class="relative z-10 flex justify-between items-start pointer-events-none">
+    <div class="flex items-center gap-2.5">
+      <span class="flex h-2 w-2 relative">
+        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+        <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+      </span>
+      <span class="text-[10px] font-mono font-bold uppercase tracking-widest text-zinc-400 dark:text-zinc-500">Neural Connectivity Cluster</span>
+    </div>
+  </div>
+
+  <div class="relative z-10 py-6 pointer-events-none">
+    <h4 class="text-3xl font-mono font-black tracking-tight text-zinc-800 dark:text-zinc-50" id="live-digital-clock">00:00:00</h4>
+    <p class="text-xs text-zinc-400 font-mono mt-1">Jakarta, ID — System Uptime Synchronized [2026]</p>
+  </div>
+
+  <div class="relative z-10 flex justify-between items-center pt-2 border-t border-zinc-200/60 dark:border-zinc-900/50">
+    <span class="text-[10px] font-mono text-zinc-400/80 group-hover/quantum:text-emerald-500 transition-colors">// Click to trigger shockwave</span>
+    <button id="ping-quantum-btn" class="px-4 py-1.5 rounded-xl bg-white text-zinc-700 border border-zinc-200 dark:bg-zinc-950 dark:text-zinc-400 dark:border-zinc-800 text-xs font-mono font-bold hover:text-emerald-500 hover:border-emerald-500/40 shadow-sm transition-all cursor-pointer">
+      TRIGGER_PULSE()
+    </button>
+  </div>
+</div>
+
+<script>
+  import { gsap } from 'gsap';
+
+  document.addEventListener('astro:page-load', () => {
+    const quantumContainer = document.getElementById('quantum-core-container');
+    const canvas = document.getElementById('quantum-core-canvas') as HTMLCanvasElement;
+    const clockElement = document.getElementById('live-digital-clock');
+    const pingBtn = document.getElementById('ping-quantum-btn');
+
+    if (canvas && quantumContainer) {
+      const ctx = canvas.getContext('2d')!;
+      let particles: any[] = [];
+      let mouse = { x: -1000, y: -1000, active: false };
+      let shockwaveRadius = 0, shockwaveX = 0, shockwaveY = 0;
+
+      function resizeCanvas() {
+        canvas.width = quantumContainer.clientWidth;
+        canvas.height = quantumContainer.clientHeight;
+      }
+      resizeCanvas();
+      window.addEventListener('resize', resizeCanvas);
+
+      class Particle {
+        x = Math.random() * canvas.width;
+        y = Math.random() * canvas.height;
+        vx = (Math.random() - 0.5) * 0.6;
+        vy = (Math.random() - 0.5) * 0.6;
+        baseSize = Math.random() * 1.5 + 1;
+
+        update() {
+          this.x += this.vx; this.y += this.vy;
+          if (this.x < 0 || this.x > canvas.width) this.vx *= -1;
+          if (this.y < 0 || this.y > canvas.height) this.vy *= -1;
+
+          if (mouse.active) {
+            const dx = mouse.x - this.x, dy = mouse.y - this.y, dist = Math.hypot(dx, dy);
+            if (dist < 100) { this.x += (dx / dist) * 0.8; this.y += (dy / dist) * 0.8; }
+          }
+          if (shockwaveRadius > 0) {
+            const dx = this.x - shockwaveX, dy = this.y - shockwaveY, dist = Math.hypot(dx, dy);
+            if (Math.abs(dist - shockwaveRadius) < 15) { this.x += (dx / dist) * 8; this.y += (dy / dist) * 8; }
+          }
+        }
+        draw(color: string) {
+          ctx.beginPath(); ctx.arc(this.x, this.y, this.baseSize, 0, Math.PI * 2); ctx.fillStyle = color; ctx.fill();
+        }
+      }
+
+      for (let i = 0; i < 45; i++) particles.push(new Particle());
+
+      function renderQuantumLoop() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        const isDark = document.documentElement.classList.contains('dark');
+        const nodeColor = isDark ? 'rgba(16, 185, 129, 0.45)' : 'rgba(5, 150, 105, 0.35)';
+        const lineColor = isDark ? 'rgba(16, 185, 129, 0.06)' : 'rgba(5, 150, 105, 0.05)';
+
+        if (shockwaveRadius > 0) {
+          shockwaveRadius += 6;
+          if (shockwaveRadius > canvas.width * 1.2) shockwaveRadius = 0;
+          ctx.beginPath(); ctx.arc(shockwaveX, shockwaveY, shockwaveRadius, 0, Math.PI * 2);
+          ctx.strokeStyle = isDark ? `rgba(16, 185, 129, ${1 - (shockwaveRadius/(canvas.width*1.2))})` : `rgba(5, 150, 105, ${1 - (shockwaveRadius/(canvas.width*1.2))})`;
+          ctx.lineWidth = 1.5; ctx.stroke();
+        }
+
+        for (let i = 0; i < particles.length; i++) {
+          for (let j = i + 1; j < particles.length; j++) {
+            const dist = Math.hypot(particles[i].x - particles[j].x, particles[i].y - particles[j].y);
+            if (dist < 75) {
+              ctx.beginPath(); ctx.moveTo(particles[i].x, particles[i].y); ctx.lineTo(particles[j].x, particles[j].y);
+              ctx.strokeStyle = lineColor; ctx.stroke();
+            }
+          }
+          particles[i].update(); particles[i].draw(nodeColor);
+        }
+        requestAnimationFrame(renderQuantumLoop);
+      }
+      requestAnimationFrame(renderQuantumLoop);
+
+      quantumContainer.addEventListener('mousemove', (e: MouseEvent) => {
+        const rect = quantumContainer.getBoundingClientRect(); mouse.x = e.clientX - rect.left; mouse.y = e.clientY - rect.top; mouse.active = true;
+      });
+      quantumContainer.addEventListener('mouseleave', () => { mouse.active = false; });
+      quantumContainer.addEventListener('click', (e: MouseEvent) => {
+        const rect = quantumContainer.getBoundingClientRect(); shockwaveX = e.clientX - rect.left; shockwaveY = e.clientY - rect.top; shockwaveRadius = 1;
+      });
+      pingBtn?.addEventListener('click', (e) => { e.stopPropagation(); shockwaveX = canvas.width/2; shockwaveY = canvas.height/2; shockwaveRadius = 1; });
+    }
+
+    if (clockElement) {
+      setInterval(() => {
+        const now = new Date(); now.setFullYear(2026); clockElement.innerText = now.toLocaleTimeString('id-ID', { hour12: false });
+      }, 1000);
+    }
+  });
+</script>

@@ -2,14 +2,13 @@
 // src/components/AudioPlayer.astro
 const { tracks } = Astro.props;
 
-// 🚀 SMART MAPPING: Memetakan data YouTube Music dari Sanity secara presisi
+// 🚀 SMART MAPPING: Sinkronisasi data YouTube Music dari skema Sanity
 const sanityTracks = tracks?.map((track: any) => ({
   trackTitle: track.trackTitle || "Untitled Track",
   artist: track.artist || "Unknown Artist",
   youtubeUrl: track.youtubeUrl || ""
 })).filter((track: any) => track.youtubeUrl);
 
-// Fallback jika database Sanity kamu sedang kosong atau dalam proses build
 const finalTracks = sanityTracks && sanityTracks.length > 0 ? sanityTracks : [
   { trackTitle: "Every Summertime", artist: "NIKI", youtubeUrl: "https://music.youtube.com/watch?v=J7p4bzqlvCw" },
   { trackTitle: "Cyber Ambient Drive (Fallback)", artist: "Lofi Core", youtubeUrl: "https://music.youtube.com/watch?v=J7p4bzqlvCw" }
@@ -32,10 +31,6 @@ const finalTracks = sanityTracks && sanityTracks.length > 0 ? sanityTracks : [
       <div class="w-[2px] bg-emerald-500 h-2/3 origin-bottom rounded-full wave-bar"></div>
       <div class="w-[2px] bg-emerald-500 h-4/5 origin-bottom rounded-full wave-bar"></div>
     </div>
-  </div>
-
-  <div class="pointer-events-none absolute opacity-0 w-[1px] h-[1px] overflow-hidden bottom-0 left-0">
-    <div id="yt-hidden-player"></div>
   </div>
 
   <div class="flex items-center justify-between gap-2 border-t border-zinc-200/60 dark:border-zinc-900/50 pt-3 mt-2 z-10">
@@ -80,11 +75,6 @@ const finalTracks = sanityTracks && sanityTracks.length > 0 ? sanityTracks : [
 <script>
   import { gsap } from 'gsap';
 
-  let ytPlayer: any;
-  let tracksData: any[] = [];
-  let currentTrackIndex = 0;
-  let isPlaying = false;
-
   function extractYouTubeId(url: string) {
     if (!url) return null;
     const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
@@ -92,7 +82,92 @@ const finalTracks = sanityTracks && sanityTracks.length > 0 ? sanityTracks : [
     return (match && match[2].length === 11) ? match[2] : null;
   }
 
-  function initAudioEngine() {
+  // 🌟 1. SETUP ENGINE CORE GLOBAL (Hanya dibuat 1 kali seumur hidup aplikasi)
+  if (!window.CyberAudioCore) {
+    window.CyberAudioCore = {
+      ytPlayer: null,
+      tracksData: [],
+      currentTrackIndex: 0,
+      isPlaying: false,
+      isYTReady: false,
+
+      init() {
+        // KUNCI EMAS: Membuat wadah render iFrame di luar <body> (Menempel pada <html>)
+        let holder = document.getElementById('global-yt-persistent-holder');
+        if (!holder) {
+          holder = document.createElement('div');
+          holder.id = 'global-yt-persistent-holder';
+          holder.style.position = 'absolute';
+          holder.style.width = '1px';
+          holder.style.height = '1px';
+          holder.style.opacity = '0';
+          holder.style.overflow = 'hidden';
+          holder.innerHTML = '<div id="yt-persistent-actual-node"></div>';
+          document.documentElement.appendChild(holder); // Amankan di level root html
+        }
+
+        if (!window.YT) {
+          const tag = document.createElement('script');
+          tag.src = "https://www.youtube.com/iframe_api";
+          const firstScriptTag = document.getElementsByTagName('script')[0];
+          firstScriptTag.parentNode?.insertBefore(tag, firstScriptTag);
+          window.onYouTubeIframeAPIReady = () => this.buildPlayerInstance();
+        } else {
+          this.buildPlayerInstance();
+        }
+      },
+
+      buildPlayerInstance() {
+        if (this.ytPlayer) return;
+        this.ytPlayer = new window.YT.Player('yt-persistent-actual-node', {
+          height: '1', width: '1',
+          videoId: this.tracksData[this.currentTrackIndex]?.id || '',
+          playerVars: { 'autoplay': 0, 'controls': 0, 'disablekb': 1, 'rel': 0 },
+          events: {
+            'onReady': (event: any) => {
+              this.isYTReady = true;
+              const triggerInitialPlay = () => {
+                if (!this.isPlaying) event.target.playVideo();
+                document.removeEventListener('click', triggerInitialPlay);
+              };
+              document.addEventListener('click', triggerInitialPlay);
+            },
+            'onStateChange': (event: any) => {
+              if (event.data === 1) {
+                this.isPlaying = true;
+              } else if (event.data === 0) {
+                let nextIndex = this.currentTrackIndex + 1;
+                if (nextIndex >= this.tracksData.length) nextIndex = 0;
+                this.switchTrack(nextIndex);
+              } else {
+                this.isPlaying = false;
+              }
+              // Kirim sinyal broadcast global ke seluruh halaman agar UI tersinkronisasi
+              window.dispatchEvent(new CustomEvent('cyber-audio-sync-signal'));
+            }
+          }
+        });
+      },
+
+      play() {
+        if (this.ytPlayer && this.isYTReady) this.ytPlayer.playVideo();
+      },
+      pause() {
+        if (this.ytPlayer && this.isYTReady) this.ytPlayer.pauseVideo();
+      },
+      switchTrack(index: number) {
+        this.currentTrackIndex = index;
+        if (this.ytPlayer && this.isYTReady) {
+          this.ytPlayer.loadVideoById(this.tracksData[index].id);
+        }
+        window.dispatchEvent(new CustomEvent('cyber-audio-sync-signal'));
+      }
+    };
+  }
+
+  // 🌟 2. UI CONNECTOR ENGINE (Berjalan otomatis setiap kali halaman ditukar/di-render ulang)
+  function syncUIWithCoreEngine() {
+    const core = window.CyberAudioCore;
     const selector = document.getElementById('audio-track-selector') as HTMLSelectElement;
     const playBtn = document.getElementById('audio-play-toggle');
     const prevBtn = document.getElementById('audio-prev-track');
@@ -106,136 +181,75 @@ const finalTracks = sanityTracks && sanityTracks.length > 0 ? sanityTracks : [
 
     if (!selector) return;
 
-    tracksData = Array.from(selector.options).map((opt: any) => ({
-      id: extractYouTubeId(opt.getAttribute('data-url')),
-      title: opt.getAttribute('data-title'),
-      artist: opt.getAttribute('data-artist')
-    })).filter(t => t.id !== null);
-
-    if (tracksData.length === 0) return;
-
-    function syncUI(index: number) {
-      const activeTrack = tracksData[index];
-      const textElements = [titleEl, artistEl];
-      gsap.killTweensOf(textElements);
-      gsap.to(textElements, {
-        opacity: 0, y: -5, duration: 0.15,
-        onComplete: () => {
-          if (titleEl) titleEl.innerText = activeTrack.title;
-          if (artistEl) artistEl.innerText = activeTrack.artist;
-          selector.value = index.toString();
-          gsap.fromTo(textElements, { opacity: 0, y: 5 }, { opacity: 1, y: 0, duration: 0.15 });
-        }
-      });
+    // Daftarkan gerbong playlist ke engine jika engine masih baru kosong
+    if (core.tracksData.length === 0) {
+      core.tracksData = Array.from(selector.options).map((opt: any) => ({
+        id: extractYouTubeId(opt.getAttribute('data-url')),
+        title: opt.getAttribute('data-title'),
+        artist: opt.getAttribute('data-artist')
+      })).filter(t => t.id !== null);
+      
+      core.init(); // Nyalakan mesin utama YouTube
     }
 
-    function loadYouTubePlayer() {
-      if (!window.YT) {
-        const tag = document.createElement('script');
-        tag.src = "https://www.youtube.com/iframe_api";
-        const firstScriptTag = document.getElementsByTagName('script')[0];
-        firstScriptTag.parentNode?.insertBefore(tag, firstScriptTag);
-        window.onYouTubeIframeAPIReady = () => buildPlayerInstance();
-      } else {
-        buildPlayerInstance();
-      }
-    }
+    // Fungsi menggambar ulang UI berdasarkan kondisi terkini Core Engine
+    function renderVisualState() {
+      const activeTrack = core.tracksData[core.currentTrackIndex];
+      if (!activeTrack) return;
 
-    function buildPlayerInstance() {
-      if (ytPlayer && ytPlayer.destroy) {
-        try { ytPlayer.destroy(); } catch(e) {}
-      }
-
-      // 🌟 FIX: Atur tinggi & lebar minimal 1px agar iFrame dianggap valid oleh browser
-      ytPlayer = new window.YT.Player('yt-hidden-player', {
-        height: '1', width: '1',
-        videoId: tracksData[currentTrackIndex].id,
-        playerVars: { 'autoplay': 0, 'controls': 0, 'disablekb': 1, 'rel': 0 },
-        events: {
-          'onReady': (event: any) => {
-            // Skenario Auto-play saat klik pertama di layar
-            const triggerInitialPlay = () => {
-              event.target.playVideo();
-              document.removeEventListener('click', triggerInitialPlay);
-            };
-            document.addEventListener('click', triggerInitialPlay);
-          },
-          'onStateChange': (event: any) => {
-            if (event.data === 1) { // PLAYING
-              isPlaying = true;
-              playIcon?.classList.add('hidden'); pauseIcon?.classList.remove('hidden');
-              waveContainer?.classList.add('animate-wave-bar');
-              gsap.to(waveContainer, { opacity: 1, duration: 0.3 });
-            } else if (event.data === 0) { // ENDED
-              let nextIndex = currentTrackIndex + 1;
-              if (nextIndex >= tracksData.length) nextIndex = 0;
-              switchTrack(nextIndex);
-            } else { // PAUSED / BUFFERING
-              isPlaying = false;
-              playIcon?.classList.remove('hidden'); pauseIcon?.classList.add('hidden');
-              waveContainer?.classList.remove('animate-wave-bar');
-              gsap.to(waveContainer, { opacity: 0.4, duration: 0.3 });
-            }
+      if (titleEl && titleEl.innerText !== activeTrack.title) {
+        const textElements = [titleEl, artistEl];
+        gsap.to(textElements, {
+          opacity: 0, y: -5, duration: 0.15,
+          onComplete: () => {
+            if (titleEl) titleEl.innerText = activeTrack.title;
+            if (artistEl) artistEl.innerText = activeTrack.artist;
+            selector.value = core.currentTrackIndex.toString();
+            gsap.fromTo(textElements, { opacity: 0, y: 5 }, { opacity: 1, y: 0, duration: 0.15 });
           }
-        }
-      });
-    }
+        });
+      } else {
+        selector.value = core.currentTrackIndex.toString();
+      }
 
-    function switchTrack(index: number) {
-      currentTrackIndex = index;
-      syncUI(index);
-      if (ytPlayer && ytPlayer.loadVideoById) {
-        ytPlayer.loadVideoById(tracksData[index].id);
+      if (core.isPlaying) {
+        playIcon?.classList.add('hidden'); pauseIcon?.classList.remove('hidden');
+        waveContainer?.classList.add('animate-wave-bar');
+        gsap.to(waveContainer, { opacity: 1, duration: 0.3 });
+      } else {
+        playIcon?.classList.remove('hidden'); pauseIcon?.classList.add('hidden');
+        waveContainer?.classList.remove('animate-wave-bar');
+        gsap.to(waveContainer, { opacity: 0.4, duration: 0.3 });
       }
     }
 
-    selector.addEventListener('change', (e: any) => {
-      switchTrack(parseInt(e.target.value));
-    });
+    // Sambungkan sinyal siaran broadcast dari Core ke Visual UI halaman saat ini
+    window.removeEventListener('cyber-audio-sync-signal', renderVisualState);
+    window.addEventListener('cyber-audio-sync-signal', renderVisualState);
 
-    playBtn?.addEventListener('click', (e) => {
-      e.stopPropagation();
-      if (!ytPlayer || !ytPlayer.pauseVideo) return;
-      if (isPlaying) ytPlayer.pauseVideo(); else ytPlayer.playVideo();
-    });
+    // Ikat kontrol tombol fisik halaman aktif ke mesin Core
+    selector.onchange = (e: any) => core.switchTrack(parseInt(e.target.value));
+    
+    if (playBtn) playBtn.onclick = (e) => { e.stopPropagation(); if (core.isPlaying) core.pause(); else core.play(); };
+    if (prevBtn) prevBtn.onclick = (e) => { e.stopPropagation(); let pIdx = core.currentTrackIndex - 1; if (pIdx < 0) pIdx = core.tracksData.length - 1; core.switchTrack(pIdx); };
+    if (nextBtn) nextBtn.onclick = (e) => { e.stopPropagation(); let nIdx = core.currentTrackIndex + 1; if (nIdx >= core.tracksData.length) nIdx = 0; core.switchTrack(nIdx); };
 
-    prevBtn?.addEventListener('click', (e) => {
-      e.stopPropagation();
-      let prevIndex = currentTrackIndex - 1;
-      if (prevIndex < 0) prevIndex = tracksData.length - 1;
-      switchTrack(prevIndex);
-    });
-
-    nextBtn?.addEventListener('click', (e) => {
-      e.stopPropagation();
-      let nextIndex = currentTrackIndex + 1;
-      if (nextIndex >= tracksData.length) nextIndex = 0;
-      switchTrack(nextIndex);
-    });
-
-    // Efek GSAP Hover Magnetic & Entry Animation
+    // GSAP Hover Magnetic & Entry Animation
     const controls = [prevBtn, playBtn, nextBtn];
     controls.forEach(btn => {
       if (!btn) return;
-      btn.addEventListener('mousemove', (e: MouseEvent) => {
-        const rect = btn.getBoundingClientRect();
-        gsap.to(btn, { x: (e.clientX - rect.left - rect.width/2) * 0.35, y: (e.clientY - rect.top - rect.height/2) * 0.35, scale: 1.05, duration: 0.2 });
-      });
-      btn.addEventListener('mouseleave', () => {
-        gsap.to(btn, { x: 0, y: 0, scale: 1, duration: 0.6, ease: "elastic.out(1, 0.35)" });
-      });
+      btn.onmousemove = (e: MouseEvent) => { const r = btn.getBoundingClientRect(); gsap.to(btn, { x: (e.clientX - r.left - r.width/2) * 0.35, y: (e.clientY - r.top - r.height/2) * 0.35, scale: 1.05, duration: 0.2 }); };
+      btn.onmouseleave = () => { gsap.to(btn, { x: 0, y: 0, scale: 1, duration: 0.6, ease: "elastic.out(1, 0.35)" }); };
     });
 
     if (widget) {
       gsap.killTweensOf(widget);
-      gsap.fromTo(widget, { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.8, ease: "power2.out", delay: 0.2 });
+      gsap.fromTo(widget, { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.8, ease: "power2.out", delay: 0.1 });
     }
 
-    // 🌟 FIX: Tampilkan UI teks judul lagu pertama secara instan tanpa menunggu iFrame siap
-    syncUI(currentTrackIndex);
-    loadYouTubePlayer();
+    renderVisualState(); // Render keadaan visual saat kartu pertama kali dimuat di halaman baru
   }
 
-  declare global { interface Window { YT: any; onYouTubeIframeAPIReady: (() => void) | undefined; } }
-  document.addEventListener('astro:page-load', initAudioEngine);
+  declare global { interface Window { YT: any; CyberAudioCore: any; onYouTubeIframeAPIReady: (() => void) | undefined; } }
+  document.addEventListener('astro:page-load', syncUIWithCoreEngine);
 </script>

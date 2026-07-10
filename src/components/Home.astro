@@ -18,8 +18,10 @@ import AudioPlayer from './AudioPlayer.astro';
 const { profile, projects, latestArticles, tracks } = Astro.props;
 ---
 
-<div class="max-w-5xl mx-auto px-4 sm:px-6 py-12 space-y-16 relative">
+<div class="max-w-5xl mx-auto px-4 sm:px-6 py-12 space-y-12 relative">
   <Header githubUsername={profile?.githubUsername} />
+  
+  <AudioPlayer tracks={tracks} transition:persist="cyber-audio" />
   
   <Hero 
     name={profile?.name} 
@@ -34,12 +36,8 @@ const { profile, projects, latestArticles, tracks } = Astro.props;
     <div class="grid grid-cols-1 md:grid-cols-2 gap-12 pt-2 items-stretch">
       <div class="flex flex-col justify-between h-full space-y-8">
         <LinguisticBars languages={profile?.languages} />
-        
-        <AudioPlayer tracks={tracks} />
-        
         <QuantumCore />
       </div>
-      
       <TerminalLogs focusCompetency={profile?.focusCompetency} />
     </div>
   </section>
@@ -50,11 +48,7 @@ const { profile, projects, latestArticles, tracks } = Astro.props;
   <ProjectLensMarquee projects={projects} />
   <LatestArticles latestArticles={latestArticles} />
   
-  <Contact 
-    contactHeading={profile?.contactHeading} 
-    contactDescription={profile?.contactDescription} 
-    contactEmail={profile?.contactEmail} 
-  />
+  <Contact contactHeading={profile?.contactHeading} contactDescription={profile?.contactDescription} contactEmail={profile?.contactEmail} />
   
   <Footer name={profile?.name} />
 </div>

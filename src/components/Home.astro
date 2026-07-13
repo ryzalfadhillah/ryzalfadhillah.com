@@ -52,8 +52,6 @@ const { profile, projects, latestArticles, tracks } = Astro.props;
   <TimelineSection experiences={profile?.experiences} education={profile?.education} />
   <ProjectLensMarquee projects={projects} />
   <LatestArticles latestArticles={latestArticles} />
-  
   <Contact contactHeading={profile?.contactHeading} contactDescription={profile?.contactDescription} contactEmail={profile?.contactEmail} />
-  
   <Footer name={profile?.name} />
 </div>

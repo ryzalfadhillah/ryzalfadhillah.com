@@ -1,3 +1,18 @@
 /* src/styles/global.css */
 @import "tailwindcss";
 @variant dark (&:where(.dark, .dark *));
+
+body {
+  top: 0 !important;
+}
+.skiptranslate, 
+.goog-te-banner-frame, 
+.goog-te-banner, 
+#goog-gt-tt, 
+.goog-te-balloon-frame {
+  display: none !important;
+}
+font {
+  background-color: transparent !important;
+  box-shadow: none !important;
+}

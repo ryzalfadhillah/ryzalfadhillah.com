@@ -8,8 +8,10 @@ const doubleTechStack = [...techStack, ...techStack];
 ---
 <div class="space-y-3">
   <h2 class="text-[10px] font-bold uppercase tracking-widest text-zinc-400 dark:text-zinc-500 px-1 flex items-center gap-2">
-    <span class="w-1 h-1 rounded-full bg-emerald-400 animate-ping"></span> Core Tech Weaponry
+    <span class="w-1 h-1 rounded-full bg-emerald-400 animate-ping"></span> 
+    <span data-translate>Persenjataan Teknologi</span>
   </h2>
+  
   <div class="w-full relative overflow-hidden py-4 bg-zinc-100/50 dark:bg-zinc-900/30 border-y border-zinc-200/80 dark:border-zinc-900/60 mask-gradient">
     <div class="absolute left-0 top-0 h-full w-16 bg-gradient-to-r from-zinc-50 dark:from-zinc-950 to-transparent z-10 pointer-events-none"></div>
     <div class="absolute right-0 top-0 h-full w-16 bg-gradient-to-l from-zinc-50 dark:from-zinc-950 to-transparent z-10 pointer-events-none"></div>
@@ -17,8 +19,8 @@ const doubleTechStack = [...techStack, ...techStack];
     <div id="tech-marquee-track" class="flex gap-8 items-center whitespace-nowrap will-change-transform">
       {doubleTechStack.map((tech) => (
         <div class="flex items-center gap-3 text-sm md:text-base font-bold tracking-tight text-zinc-600 dark:text-zinc-400 hover:text-emerald-500 transition-colors cursor-default select-none">
-          <span>{tech}</span>
-          <span class="text-zinc-300 dark:text-zinc-800 font-normal">•</span>
+          <span data-translate>{tech}</span>
+          <span class="text-zinc-300 dark:text-zinc-800 font-normal notranslate">•</span>
         </div>
       ))}
     </div>
@@ -27,10 +29,14 @@ const doubleTechStack = [...techStack, ...techStack];
 
 <script>
   import { gsap } from 'gsap';
+  import { runDynamicTranslationEngine } from '../utils/translator';
 
-  function initTechMarquee() {
+  async function initTechMarquee() {
     const track = document.getElementById('tech-marquee-track');
     if (track) {
+      // 🌟 TUNGGU TRANSLASI: Pastikan teks sudah diterjemahkan dulu baru kita hitung lebar lintasannya
+      await runDynamicTranslationEngine();
+
       // Hitung setengah lebar total lintasan untuk titik balik loop murni
       const trackWidth = track.scrollWidth / 2;
       
@@ -51,6 +57,9 @@ const doubleTechStack = [...techStack, ...techStack];
     }
   }
 
-  // Kunci utama penyelemat siklus navigasi Astro v7
+  // 🌟 PENGHITUNG ULANG OTOMATIS: Jika user mengubah bahasa di header, hitung ulang lebar animasi
+  window.addEventListener('lang-changed-signal', initTechMarquee);
+
+  // Kunci utama penyelamat siklus navigasi Astro View Transitions
   document.addEventListener('astro:page-load', initTechMarquee);
 </script>

@@ -16,8 +16,6 @@ export async function getStaticPaths() {
 const { slug } = Astro.params;
 const article = await client.fetch(`*[_type == "article" && slug.current == $slug][0]{ title, publishDate, content, tags, "imageUrl": mainImage.asset->url }`, { slug });
 const profile = await client.fetch(`*[_type == "profile"][0]{ name }`);
-
-// 🚀 PIPELINE DATA MUSIK
 const tracks = await client.fetch(`*[_type == "track"]{ trackTitle, artist, youtubeUrl }`);
 
 const renderContent = (contentArray: any) => {
@@ -25,8 +23,8 @@ const renderContent = (contentArray: any) => {
   return contentArray.map((block: any) => {
     if (block._type === 'block') {
       const text = block.children?.map((c: any) => c.text).join('') || '';
-      if (block.style === 'h2') return `<h2 class="text-2xl font-bold text-zinc-800 dark:text-zinc-100 mt-10 mb-4 border-b border-zinc-100 dark:border-zinc-900 pb-2">${text}</h2>`;
-      return `<p class="text-zinc-600 dark:text-zinc-300 leading-relaxed mb-6 text-base sm:text-lg">${text}</p>`;
+      if (block.style === 'h2') return `<h2 class="text-2xl font-bold text-zinc-800 dark:text-zinc-100 mt-10 mb-4 border-b border-zinc-100 dark:border-zinc-900 pb-2" data-translate>${text}</h2>`;
+      return `<p class="text-zinc-600 dark:text-zinc-300 leading-relaxed mb-6 text-base sm:text-lg" data-translate>${text}</p>`;
     }
     return '';
   }).join('');
@@ -37,7 +35,7 @@ const renderContent = (contentArray: any) => {
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>{article?.title} | Ryzal Fadhillah</title>
+    <title>{article?.title}</title>
     <script is:inline>
       const applyThemeEngine = () => {
         const theme = (() => {
@@ -52,32 +50,30 @@ const renderContent = (contentArray: any) => {
     </script>
     <ClientRouter />
   </head>
-  <body class="bg-zinc-50 text-zinc-900 dark:bg-zinc-950 dark:text-zinc-100 font-sans min-h-screen transition-colors duration-300 relative">
-    
-    <div id="reading-progress-indicator" class="fixed top-0 left-0 h-[3px] bg-gradient-to-r from-emerald-500 to-teal-400 w-0 z-50 transition-all duration-300"></div>
-
+  <body class="bg-zinc-50 text-zinc-900 dark:bg-zinc-950 dark:text-zinc-100 font-sans min-h-screen transition-colors duration-300">
     <div class="max-w-3xl mx-auto px-4 sm:px-6 py-12 space-y-10">
       <Header />
-      
       <AudioPlayer tracks={tracks} transition:persist="cyber-audio" />
       
       <div class="pt-2">
-        <a id="back-to-blog-btn" href="/artikel" class="inline-flex items-center gap-2 text-xs font-mono font-bold text-zinc-400 hover:text-emerald-500 border border-zinc-200 dark:border-zinc-900 bg-white dark:bg-zinc-950 px-4 py-2 rounded-xl shadow-sm">← KEMBALI</a>
+        <a href="/artikel" class="inline-flex items-center gap-2 text-xs font-mono font-bold text-zinc-400 hover:text-emerald-500 border border-zinc-200 dark:border-zinc-900 bg-white dark:bg-zinc-950 px-4 py-2 rounded-xl" data-translate>← KEMBALI</a>
       </div>
 
       <article class="space-y-8 opacity-0 transform translate-y-6" id="main-article-body">
         <header class="space-y-4 border-b border-zinc-200/80 dark:border-zinc-900 pb-6">
           <div class="flex flex-wrap items-center gap-2 text-xs font-mono font-bold text-zinc-400">
+            <span class="text-emerald-500" data-translate>// Node Arsip Tulisan</span>
+            <span>•</span>
             {article?.tags?.map((tag: string) => <span class="text-emerald-500">#{tag}</span>)}
             <span>•</span>
-            <span>{article?.publishDate ? new Date(article.publishDate).toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' }) : 'Draft'}</span>
+            <span data-translate>{article?.publishDate ? new Date(article.publishDate).toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' }) : 'Mode Draf'}</span>
           </div>
-          <h1 class="text-3xl sm:text-4xl font-black tracking-tight text-zinc-900 dark:text-zinc-50">{article?.title}</h1>
+          <h1 class="text-3xl sm:text-4xl font-black tracking-tight text-zinc-900 dark:text-zinc-50" data-translate>{article?.title}</h1>
         </header>
 
         {article?.imageUrl && (
           <div id="article-hero-cover-wrap" class="w-full h-[240px] sm:h-[380px] rounded-3xl overflow-hidden bg-zinc-900 shadow-xl relative">
-            <img src={article.imageUrl} alt={article.title} id="article-hero-img" class="w-full h-full object-cover opacity-85 scale-105" />
+            <img src={article.imageUrl} alt={article.title} class="w-full h-full object-cover opacity-85" />
           </div>
         )}
 
@@ -87,16 +83,13 @@ const renderContent = (contentArray: any) => {
     </div>
   </body>
 </html>
+
 <script>
   import { gsap } from 'gsap';
+  import { runDynamicTranslationEngine } from '../../utils/translator';
   document.addEventListener('astro:page-load', () => {
+    runDynamicTranslationEngine();
     const articleContainer = document.getElementById('main-article-body');
-    const coverWrap = document.getElementById('article-hero-cover-wrap');
-    const coverImg = document.getElementById('article-hero-img');
     if (articleContainer) gsap.to(articleContainer, { opacity: 1, y: 0, duration: 0.6 });
-    if (coverWrap && coverImg) {
-      gsap.fromTo(coverWrap, { clipPath: 'inset(12% 12% 12% 12% rounded 24px)' }, { clipPath: 'inset(0% 0% 0% 0% rounded 24px)', duration: 1.1, ease: "power4.out" });
-      gsap.fromTo(coverImg, { scale: 1.12 }, { scale: 1, duration: 1.3, ease: "power3.out" });
-    }
   });
 </script>

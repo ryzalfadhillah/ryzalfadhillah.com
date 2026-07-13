@@ -1,176 +1,174 @@
 ---
 // src/components/TerminalLogs.astro
-// Tangkap data dinamis dari Sanity CMS melalui halaman utama
-const { skills, focusCompetency, projects } = Astro.props;
-
+const { skills, bio, projects } = Astro.props;
 const projectTitles = projects?.map((p: any) => p.title) || [];
 ---
 
 <div 
   id="cyber-terminal-card" 
   data-sanity-skills={JSON.stringify(skills || [])}
-  data-sanity-about={focusCompetency || "Software Engineer Portfolio Matrix."}
+  data-sanity-bio={bio || "Matriks Portofolio Rekayasa Perangkat Lunak."}
   data-sanity-projects={JSON.stringify(projectTitles)}
   class="w-full rounded-2xl bg-zinc-100/70 border border-zinc-200/80 dark:bg-zinc-950 dark:border-zinc-900 overflow-hidden flex flex-col shadow-sm dark:shadow-xl font-mono text-xs text-zinc-800 dark:text-zinc-300 h-full min-h-[340px] transition-all duration-300"
 >
-  
   <div class="flex items-center justify-between px-4 py-2.5 bg-zinc-200/50 border-b border-zinc-200 dark:bg-zinc-900 dark:border-zinc-900 select-none shrink-0">
     <div class="flex items-center gap-1.5">
       <div class="w-2.5 h-2.5 rounded-full bg-zinc-300 dark:bg-zinc-800"></div>
       <div class="w-2.5 h-2.5 rounded-full bg-zinc-300 dark:bg-zinc-800"></div>
       <div class="w-2.5 h-2.5 rounded-full bg-zinc-300 dark:bg-zinc-800"></div>
     </div>
-    <span class="text-[10px] text-zinc-400 dark:text-zinc-500 font-bold tracking-wider uppercase">core_kernel_v2.6.sh</span>
+    <span id="term-header-title" class="text-[10px] text-zinc-400 dark:text-zinc-500 font-bold tracking-wider uppercase">kernel_utama_v2.6.sh</span>
     <span class="w-4"></span>
   </div>
 
   <div id="terminal-screen-scroll" class="p-4 flex-1 overflow-y-auto space-y-2 scrollbar-thin scrollbar-thumb-zinc-300 dark:scrollbar-thumb-zinc-800 text-[11px] leading-relaxed">
     <div id="terminal-logs-history" class="space-y-2">
-      <p class="text-zinc-400 dark:text-zinc-600 font-bold">// Cybernetic Terminal Connection Stabilized.</p>
-      <p class="text-zinc-600 dark:text-zinc-400">Selamat datang di sistem repositori lokal saya. Ketik <span class="text-emerald-600 dark:text-emerald-400 font-bold font-mono">help</span> untuk melihat daftar komando harian yang tersedia.</p>
-    </div>
+      </div>
 
     <div class="flex items-center gap-1.5 pt-1 text-zinc-700 dark:text-zinc-300">
-      <span class="text-emerald-600 dark:text-emerald-500 font-bold shrink-0">guest@ryzalfadhillah:~$</span>
+      <span id="term-prompt-user" class="text-emerald-600 dark:text-emerald-500 font-bold shrink-0 notranslate">tamu@ryzalfadhillah:~$</span>
       <input 
         type="text" 
         id="live-terminal-input" 
         class="bg-transparent border-none outline-none flex-1 text-emerald-600 dark:text-emerald-400 font-bold p-0 m-0 caret-emerald-600 dark:caret-emerald-400 focus:ring-0 focus:border-none" 
         autocomplete="off"
         spellcheck="false"
-        aria-label="Terminal Command Input"
+        aria-label="Terminal Input"
       />
     </div>
   </div>
 </div>
 
 <script>
-  import { gsap } from 'gsap';
+  import { runDynamicTranslationEngine } from '../utils/translator';
 
   function initInteractiveTerminal() {
     const card = document.getElementById('cyber-terminal-card');
     const screenScroll = document.getElementById('terminal-screen-scroll');
     const historyBox = document.getElementById('terminal-logs-history');
     const input = document.getElementById('live-terminal-input') as HTMLInputElement;
+    const headerTitle = document.getElementById('term-header-title');
+    const promptUser = document.getElementById('term-prompt-user');
 
     if (!input || !historyBox || !screenScroll || !card) return;
 
     card.addEventListener('click', () => input.focus());
 
-    const rawSkills = card.getAttribute('data-sanity-skills');
-    const sanityAbout = card.getAttribute('data-sanity-about');
-    const rawProjects = card.getAttribute('data-sanity-projects');
-    
-    const skillsList = rawSkills ? JSON.parse(rawSkills) : [];
-    const projectsList = rawProjects ? JSON.parse(rawProjects) : [];
+    const skillsList = JSON.parse(card.getAttribute('data-sanity-skills') || '[]');
+    const sanityBio = card.getAttribute('data-sanity-bio') || '';
+    const projectsList = JSON.parse(card.getAttribute('data-sanity-projects') || '[]');
 
-    input.addEventListener('keydown', (e) => {
+    // 🌟 ARSITEKTUR KATA INTERNASIONAL TERMINAL KOLEKTIF
+    function renderWelcomeMessage() {
+      const lang = localStorage.getItem('site-lang') || 'id';
+      if (headerTitle) headerTitle.innerText = lang === 'id' ? 'kernel_utama_v2.6.sh' : 'core_kernel_v2.6.sh';
+      if (promptUser) promptUser.innerText = lang === 'id' ? 'tamu@ryzalfadhillah:~$' : 'guest@ryzalfadhillah:~$';
+
+      historyBox!.innerHTML = lang === 'id' 
+        ? `<p class="text-zinc-400 dark:text-zinc-600 font-bold">// Koneksi Terminal Siber Stabil.</p>
+           <p class="text-zinc-600 dark:text-zinc-400">Selamat datang di repositori lokal saya. Ketik <span class="text-emerald-600 dark:text-emerald-400 font-bold">help</span> untuk melihat daftar perintah.</p>`
+        : `<p class="text-zinc-400 dark:text-zinc-600 font-bold">// Cybernetic Terminal Connection Stabilized.</p>
+           <p class="text-zinc-600 dark:text-zinc-400">Welcome to my local repository. Type <span class="text-emerald-600 dark:text-emerald-400 font-bold">help</span> to view available commands.</p>`;
+    }
+
+    renderWelcomeMessage();
+    window.removeEventListener('lang-changed-signal', renderWelcomeMessage);
+    window.addEventListener('lang-changed-signal', renderWelcomeMessage);
+
+    input.addEventListener('keydown', async (e) => {
       if (e.key === 'Enter') {
         const fullRawCommand = input.value;
         const cleanedCommand = fullRawCommand.trim().toLowerCase();
         const args = cleanedCommand.split(' ');
         const primaryCmd = args[0];
+        const lang = localStorage.getItem('site-lang') || 'id';
 
         if (cleanedCommand === '') return;
 
-        // Echo command user (responsif dual-theme)
         const echoLine = document.createElement('div');
         echoLine.className = 'flex items-center gap-1.5 pt-1';
-        echoLine.innerHTML = `<span class="text-zinc-400 dark:text-zinc-600 font-bold">guest@ryzalfadhillah:~$</span> <span class="text-zinc-900 dark:text-zinc-100 font-medium">${fullRawCommand}</span>`;
+        echoLine.innerHTML = `<span class="text-zinc-400 dark:text-zinc-600 font-bold notranslate">${promptUser?.innerText}</span> <span class="text-zinc-900 dark:text-zinc-100 font-medium">${fullRawCommand}</span>`;
         historyBox.appendChild(echoLine);
 
-        // Kontainer jawaban responsif terhadap light & dark mode
         const responseBlock = document.createElement('div');
         responseBlock.className = 'space-y-1 pl-2 border-l border-zinc-300 dark:border-zinc-800 text-zinc-600 dark:text-zinc-400';
 
         switch (primaryCmd) {
           case 'help':
-            responseBlock.innerHTML = `
-              <p class="text-zinc-400 dark:text-zinc-500 font-bold">// Daftar Komando Inti Kernel System:</p>
-              <p><span class="text-emerald-600 dark:text-emerald-400 font-bold w-20 inline-block">about</span> - Menampilkan ringkasan biodata biografi harian.</p>
-              <p><span class="text-emerald-600 dark:text-emerald-400 font-bold w-20 inline-block">skills</span> - Membongkar persenjataan core teknologi stack harian.</p>
-              <p><span class="text-emerald-600 dark:text-emerald-400 font-bold w-20 inline-block">projects</span> - Mencetak daftar proyek asli database Sanity.</p>
-              <p><span class="text-emerald-600 dark:text-emerald-400 font-bold w-20 inline-block">music</span> - Kontrol playlist [music play / music pause / music next].</p>
-              <p><span class="text-emerald-600 dark:text-emerald-400 font-bold w-20 inline-block">clear</span> - Membersihkan seluruh riwayat tumpukan logs.</p>
+            responseBlock.innerHTML = lang === 'id' ? `
+              <p class="text-zinc-400 dark:text-zinc-500 font-bold">// Daftar Perintah Sistem Utama:</p>
+              <p><span class="text-emerald-600 dark:text-emerald-400 font-bold w-20 inline-block">about</span> - Ringkasan profil dan biodata diri.</p>
+              <p><span class="text-emerald-600 dark:text-emerald-400 font-bold w-20 inline-block">skills</span> - Keahlian utama teknologi arsenal.</p>
+              <p><span class="text-emerald-600 dark:text-emerald-400 font-bold w-20 inline-block">projects</span> - Daftar proyek dari database Sanity.</p>
+              <p><span class="text-emerald-600 dark:text-emerald-400 font-bold w-20 inline-block">music</span> - Mengontrol pemutar musik [music play / pause / next].</p>
+              <p><span class="text-emerald-600 dark:text-emerald-400 font-bold w-20 inline-block">clear</span> - Membersihkan riwayat terminal.</p>
+            ` : `
+              <p class="text-zinc-400 dark:text-zinc-500 font-bold">// System Commands Directory:</p>
+              <p><span class="text-emerald-600 dark:text-emerald-400 font-bold w-20 inline-block">about</span> - Display biography information summary.</p>
+              <p><span class="text-emerald-600 dark:text-emerald-400 font-bold w-20 inline-block">skills</span> - View core technical weaponry arsenal.</p>
+              <p><span class="text-emerald-600 dark:text-emerald-400 font-bold w-20 inline-block">projects</span> - Fetch dynamic project records.</p>
+              <p><span class="text-emerald-600 dark:text-emerald-400 font-bold w-20 inline-block">music</span> - Control global playlist state [music play / pause / next].</p>
+              <p><span class="text-emerald-600 dark:text-emerald-400 font-bold w-20 inline-block">clear</span> - Clear all current screen text buffers.</p>
             `;
             break;
 
           case 'about':
-            responseBlock.innerHTML = `
-              <p class="text-zinc-800 dark:text-zinc-200 font-bold">Ryzal Fadhillah — Software Engineer</p>
-              <p class="leading-relaxed">${sanityAbout}</p>
-            `;
+            responseBlock.innerHTML = `<p class="text-zinc-800 dark:text-zinc-200 font-bold">Ryzal Fadhillah</p><p data-translate>${sanityBio}</p>`;
             break;
 
           case 'skills':
-            let skillsHtml = `<p class="text-zinc-400 dark:text-zinc-500 font-bold">// Core Tech Weaponry Arsenal (Live Sanity CMS):</p>`;
-            if (skillsList.length > 0) {
-              skillsList.forEach((s: string) => {
-                skillsHtml += `<p class="text-zinc-700 dark:text-zinc-300 flex items-center gap-1.5"><span class="text-emerald-600 dark:text-emerald-500">•</span> ${s}</p>`;
-              });
-            } else {
-              skillsHtml += `<p class="italic text-zinc-400">Belum ada skill terdaftar.</p>`;
-            }
-            responseBlock.innerHTML = skillsHtml;
+            let skHeader = lang === 'id' ? '// Senjata Teknologi Utama:' : '// Core Technology Weaponry:';
+            let skHtml = `<p class="text-zinc-400 dark:text-zinc-500 font-bold">${skHeader}</p>`;
+            skillsList.forEach((s: string) => { skHtml += `<p class="text-zinc-700 dark:text-zinc-300 flex items-center gap-1.5"><span class="text-emerald-600 dark:text-emerald-500">•</span> ${s}</p>`; });
+            responseBlock.innerHTML = skHtml;
             break;
 
           case 'projects':
-            let projectsHtml = `<p class="text-zinc-400 dark:text-zinc-500 font-bold">// Fetching Blueprint Database (Live Sanity CMS)...</p>`;
-            if (projectsList.length > 0) {
-              projectsList.forEach((title: string, index: number) => {
-                projectsHtml += `<p class="text-zinc-800 dark:text-zinc-200">${index + 1}. ${title}</p>`;
-              });
-            } else {
-              projectsHtml += `<p class="italic text-zinc-400">Belum ada proyek yang diterbitkan.</p>`;
-            }
-            projectsHtml += `<p class="text-zinc-500 dark:text-zinc-400 pt-1 font-semibold text-emerald-600 dark:text-emerald-400/80">Ketik "go projects" untuk membuka galeri filter visual penuh.</p>`;
-            responseBlock.innerHTML = projectsHtml;
+            let prHeader = lang === 'id' ? '// Menarik Data Proyek Terbaik...' : '// Fetching Best Project Records...';
+            let prFooter = lang === 'id' ? 'Ketik "go projects" untuk membuka galeri visual.' : 'Type "go projects" to switch into full visual view.';
+            let prHtml = `<p class="text-zinc-400 dark:text-zinc-500 font-bold">${prHeader}</p>`;
+            projectsList.forEach((t: string, i: number) => { prHtml += `<p class="text-zinc-800 dark:text-zinc-200" data-translate>${i + 1}. ${t}</p>`; });
+            prHtml += `<p class="text-emerald-600 dark:text-emerald-400 pt-1 font-semibold">${prFooter}</p>`;
+            responseBlock.innerHTML = prHtml;
             break;
 
           case 'go':
             if (args[1] === 'projects') {
-              responseBlock.innerHTML = `<p class="text-emerald-600 dark:text-emerald-400 font-bold">// Redirecting Hyperlink Spatial Loop...</p>`;
-              setTimeout(() => { window.location.href = '/proyek'; }, 600);
+              responseBlock.innerHTML = `<p class="text-emerald-600 dark:text-emerald-400 font-bold">${lang === 'id' ? '// Mengalihkan...' : '// Redirecting...'}</p>`;
+              setTimeout(() => { window.location.href = '/proyek'; }, 500);
             } else if (args[1] === 'artikel' || args[1] === 'blog') {
-              responseBlock.innerHTML = `<p class="text-emerald-600 dark:text-emerald-400 font-bold">// Redirecting Hyperlink Archive...</p>`;
-              setTimeout(() => { window.location.href = '/artikel'; }, 600);
+              responseBlock.innerHTML = `<p class="text-emerald-600 dark:text-emerald-400 font-bold">${lang === 'id' ? '// Mengalihkan...' : '// Redirecting...'}</p>`;
+              setTimeout(() => { window.location.href = '/artikel'; }, 500);
             } else {
-              responseBlock.innerHTML = `<p class="text-red-500 dark:text-red-400 font-bold">// Target navigasi "${args[1] || ''}" tidak valid.</p>`;
+              responseBlock.innerHTML = `<p class="text-red-500 font-bold">// Target matrix path error.</p>`;
             }
             break;
 
           case 'music':
-            const coreAudio = (window as any).CyberAudioCore;
-            if (!coreAudio) {
-              responseBlock.innerHTML = `<p class="text-amber-600 dark:text-yellow-500 font-bold">// Audio core stream node belum terinisialisasi.</p>`;
-            } else {
-              const subAction = args[1];
-              if (subAction === 'play') { coreAudio.play(); responseBlock.innerHTML = `<p class="text-emerald-600 dark:text-emerald-400 font-bold">▶ Music Node Stream: PLAYED</p>`; }
-              else if (subAction === 'pause') { coreAudio.pause(); responseBlock.innerHTML = `<p class="text-amber-600 dark:text-yellow-400 font-bold">⏸ Music Node Stream: PAUSED</p>`; }
-              else if (subAction === 'next') {
-                let nIdx = coreAudio.currentTrackIndex + 1;
-                if (nIdx >= coreAudio.tracksData.length) nIdx = 0;
-                coreAudio.switchTrack(nIdx);
-                const trackName = coreAudio.tracksData[nIdx]?.title || "Next Track";
-                responseBlock.innerHTML = `<p class="text-emerald-600 dark:text-emerald-400 font-bold">⏭ Skip Node Track: Loading "${trackName}"</p>`;
-              } else {
-                responseBlock.innerHTML = `<p class="text-zinc-400 dark:text-zinc-500 font-bold">// Gunakan parameter: music play, music pause, atau music next</p>`;
+            const cAudio = (window as any).CyberAudioCore;
+            if (!cAudio) { responseBlock.innerHTML = `<p class="text-red-400">// Audio system terminal failure.</p>`; }
+            else {
+              if (args[1] === 'play') { cAudio.play(); responseBlock.innerHTML = `<p class="text-emerald-600 font-bold">▶ Play</p>`; }
+              else if (args[1] === 'pause') { cAudio.pause(); responseBlock.innerHTML = `<p class="text-amber-600 font-bold">⏸ Pause</p>`; }
+              else if (args[1] === 'next') {
+                let nIdx = cAudio.currentTrackIndex + 1; if (nIdx >= cAudio.tracksData.length) nIdx = 0; cAudio.switchTrack(nIdx);
+                responseBlock.innerHTML = `<p class="text-emerald-600 font-bold">⏭ Skip -> ${cAudio.tracksData[nIdx]?.title || ''}</p>`;
               }
             }
             break;
 
           case 'clear':
-            historyBox.innerHTML = `<p class="text-zinc-400 dark:text-zinc-600 font-bold">// Cybernetic Terminal Cleared. Session Reset.</p>`;
-            input.value = '';
-            return;
+            historyBox.innerHTML = `<p class="text-zinc-400 dark:text-zinc-600 font-bold">${lang === 'id' ? '// Riwayat terminal dibersihkan.' : '// Terminal buffer cleared.'}</p>`;
+            input.value = ''; return;
 
           default:
-            responseBlock.innerHTML = `<p class="text-red-500 dark:text-red-400 font-bold">// Command Error: Perintah "${primaryCmd}" tidak dikenali kernel.</p>`;
+            responseBlock.innerHTML = `<p class="text-red-500 font-bold">// Error: Command not found.</p>`;
             break;
         }
 
         historyBox.appendChild(responseBlock);
         input.value = '';
+        await runDynamicTranslationEngine(); // Pastikan data dinamis hasil input terminal langsung ter-translate
         setTimeout(() => { screenScroll.scrollTop = screenScroll.scrollHeight; }, 20);
       }
     });

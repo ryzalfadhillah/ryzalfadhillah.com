@@ -3,7 +3,7 @@ import { defineCliConfig } from 'sanity/cli';
 
 export default defineCliConfig({
   api: {
-    projectId: 'mxkcjxob', // Project ID cloud Sanity kamu
-    dataset: 'production'  // Dataset target kamu
+    projectId: import.meta.env.PUBLIC_SANITY_PROJECT_ID,
+    dataset: import.meta.env.PUBLIC_SANITY_DATASET
   }
 });

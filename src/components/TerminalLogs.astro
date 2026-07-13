@@ -8,30 +8,39 @@ const projectTitles = projects?.map((p: any) => p.title) || [];
   data-sanity-skills={JSON.stringify(skills || [])}
   data-sanity-bio={bio || "Matriks Portofolio Rekayasa Perangkat Lunak."}
   data-sanity-projects={JSON.stringify(projectTitles)}
-  class="w-full rounded-3xl bg-white/5 dark:bg-zinc-950/5 bg-clip-padding backdrop-blur-md border border-zinc-200/40 dark:border-zinc-800/30 overflow-hidden flex flex-col shadow-sm font-mono text-xs text-zinc-800 dark:text-zinc-300 h-full min-h-[340px] transition-all duration-300"
+  class="w-full rounded-3xl bg-white/10 dark:bg-zinc-900/15 border border-zinc-200/50 dark:border-zinc-800/40 overflow-hidden flex flex-col shadow-xl font-mono text-xs text-zinc-800 dark:text-zinc-300 h-full min-h-[360px] transition-all duration-300 relative group"
 >
-  <div class="flex items-center justify-between px-4 py-3 bg-white/10 border-b border-zinc-200/20 dark:bg-zinc-900/10 dark:border-zinc-800/20 select-none shrink-0">
-    <div class="flex items-center gap-1.5">
-      <div class="w-2.5 h-2.5 rounded-full bg-zinc-300/40 dark:bg-zinc-800/40"></div>
-      <div class="w-2.5 h-2.5 rounded-full bg-zinc-300/40 dark:bg-zinc-800/40"></div>
-      <div class="w-2.5 h-2.5 rounded-full bg-zinc-300/40 dark:bg-zinc-800/40"></div>
+  <div class="absolute inset-0 pointer-events-none opacity-[0.02] dark:opacity-[0.04] bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.25)_50%),linear-gradient(90deg,rgba(255,0,0,0.06),rgba(0,255,0,0.02),rgba(0,0,255,0.06))] bg-[size:100%_4px,3px_100%] z-20"></div>
+
+  <div class="flex items-center justify-between px-4 py-3 bg-white/20 border-b border-zinc-200/30 dark:bg-zinc-900/10 dark:border-zinc-800/20 select-none shrink-0 z-10">
+    <div class="flex items-center gap-2">
+      <div class="w-3 h-3 rounded-full bg-red-400/80 dark:bg-red-500/40 border border-red-500/20 shadow-sm shadow-red-500/10"></div>
+      <div class="w-3 h-3 rounded-full bg-amber-400/80 dark:bg-amber-500/40 border border-amber-500/20 shadow-sm shadow-amber-500/10"></div>
+      <div class="w-3 h-3 rounded-full bg-emerald-400/80 dark:bg-emerald-500/40 border border-emerald-500/20 shadow-sm shadow-emerald-500/10 animate-pulse"></div>
     </div>
-    <span id="term-header-title" class="text-[10px] text-zinc-400 dark:text-zinc-500 font-bold tracking-wider uppercase">kernel_utama_v2.6.sh</span>
-    <span class="w-4"></span>
+    <span id="term-header-title" class="text-[9px] sm:text-[10px] text-zinc-400 dark:text-zinc-500 font-bold tracking-widest uppercase">kernel_utama_v2.6.sh</span>
+    <div class="flex items-center gap-1 text-[9px] text-zinc-400/60 dark:text-zinc-600 font-bold select-none">
+      <span>TTY_1</span>
+    </div>
   </div>
 
-  <div id="terminal-screen-scroll" class="p-4 flex-1 overflow-y-auto space-y-2 scrollbar-thin scrollbar-thumb-zinc-300/30 dark:scrollbar-thumb-zinc-800/30 text-[11px] leading-relaxed">
-    <div id="terminal-logs-history" class="space-y-2"></div>
-    <div class="flex items-center gap-1.5 pt-1 text-zinc-700 dark:text-zinc-300">
-      <span id="term-prompt-user" class="text-emerald-600 dark:text-emerald-500 font-bold shrink-0 notranslate">tamu@ryzalfadhillah:~$</span>
-      <input 
-        type="text" 
-        id="live-terminal-input" 
-        class="bg-transparent border-none outline-none flex-1 text-emerald-600 dark:text-emerald-400 font-bold p-0 m-0 caret-emerald-600 dark:caret-emerald-400 focus:ring-0 focus:border-none" 
-        autocomplete="off"
-        spellcheck="false"
-        aria-label="Terminal Input"
-      />
+  <div id="terminal-screen-scroll" class="p-4 flex-1 overflow-y-auto space-y-3 scrollbar-thin scrollbar-thumb-zinc-300/30 dark:scrollbar-thumb-zinc-800/30 text-[11px] leading-relaxed relative z-10">
+    <div id="terminal-logs-history" class="space-y-3">
+      </div>
+
+    <div class="flex items-center gap-2 pt-1.5 text-zinc-700 dark:text-zinc-300 group-focus-within:text-emerald-500 transition-colors">
+      <span id="term-prompt-user" class="text-emerald-600 dark:text-emerald-500 font-bold shrink-0 notranslate tracking-tight">tamu@ryzalfadhillah:~$</span>
+      <div class="flex-1 flex items-center relative">
+        <input 
+          type="text" 
+          id="live-terminal-input" 
+          class="bg-transparent border-none outline-none w-full text-emerald-600 dark:text-emerald-400 font-bold p-0 m-0 caret-transparent focus:ring-0 focus:border-none tracking-wide" 
+          autocomplete="off"
+          spellcheck="false"
+          aria-label="Terminal Input"
+        />
+        <span id="custom-terminal-cursor" class="absolute w-2 h-4 bg-emerald-500 dark:bg-emerald-400 animate-[ping_1s_infinite] pointer-events-none"></span>
+      </div>
     </div>
   </div>
 </div>
@@ -46,10 +55,23 @@ const projectTitles = projects?.map((p: any) => p.title) || [];
     const input = document.getElementById('live-terminal-input') as HTMLInputElement;
     const headerTitle = document.getElementById('term-header-title');
     const promptUser = document.getElementById('term-prompt-user');
+    const customCursor = document.getElementById('custom-terminal-cursor');
 
     if (!input || !historyBox || !screenScroll || !card) return;
 
+    // Otomatis fokus ke input & atur letak kursor custom saat card di-klik
     card.addEventListener('click', () => input.focus());
+    
+    const updateCursorPosition = () => {
+      if (!customCursor) return;
+      // Estimasi jarak geser kursor berdasarkan jumlah huruf yang diketik
+      const charWidth = 6.6; 
+      customCursor.style.left = `${input.value.length * charWidth}px`;
+    };
+    
+    input.addEventListener('input', updateCursorPosition);
+    input.addEventListener('focus', () => customCursor?.classList.remove('hidden'));
+    input.addEventListener('blur', () => customCursor?.classList.add('hidden'));
 
     const skillsList = JSON.parse(card.getAttribute('data-sanity-skills') || '[]');
     const sanityBio = card.getAttribute('data-sanity-bio') || '';
@@ -61,10 +83,10 @@ const projectTitles = projects?.map((p: any) => p.title) || [];
       if (promptUser) promptUser.innerText = lang === 'id' ? 'tamu@ryzalfadhillah:~$' : 'guest@ryzalfadhillah:~$';
 
       historyBox!.innerHTML = lang === 'id' 
-        ? `<p class="text-zinc-400 dark:text-zinc-600 font-bold">// Koneksi Terminal Siber Stabil.</p>
-           <p class="text-zinc-600 dark:text-zinc-400">Selamat datang di repositori lokal saya. Ketik <span class="text-emerald-600 dark:text-emerald-400 font-bold">help</span> untuk melihat daftar perintah.</p>`
-        : `<p class="text-zinc-400 dark:text-zinc-600 font-bold">// Cybernetic Terminal Connection Stabilized.</p>
-           <p class="text-zinc-600 dark:text-zinc-400">Welcome to my local repository. Type <span class="text-emerald-600 dark:text-emerald-400 font-bold">help</span> to view available commands.</p>`;
+        ? `<div class="text-zinc-400 dark:text-zinc-600 font-bold flex items-center gap-1.5"><span>[SYS_OK]</span> <span>// Koneksi Terminal Siber Stabil.</span></div>
+           <p class="text-zinc-500 dark:text-zinc-400 bg-zinc-500/5 px-2.5 py-1.5 rounded-xl border border-zinc-200/20">Selamat datang di core sistem saya. Ketik <span class="text-emerald-500 font-black underline decoration-2 cursor-pointer notranslate">help</span> untuk melihat menu perintah.</p>`
+        : `<div class="text-zinc-400 dark:text-zinc-600 font-bold flex items-center gap-1.5"><span>[SYS_OK]</span> <span>// Cybernetic Terminal Connection Stabilized.</span></div>
+           <p class="text-zinc-500 dark:text-zinc-400 bg-zinc-500/5 px-2.5 py-1.5 rounded-xl border border-zinc-200/20">Welcome to my core system network. Type <span class="text-emerald-500 font-black underline decoration-2 cursor-pointer notranslate">help</span> to view all commands.</p>`;
     }
 
     renderWelcomeMessage();
@@ -81,91 +103,111 @@ const projectTitles = projects?.map((p: any) => p.title) || [];
 
         if (cleanedCommand === '') return;
 
+        // Baris gaung ketikan user
         const echoLine = document.createElement('div');
         echoLine.className = 'flex items-center gap-1.5 pt-1';
-        echoLine.innerHTML = `<span class="text-zinc-400 dark:text-zinc-600 font-bold notranslate">${promptUser?.innerText}</span> <span class="text-zinc-900 dark:text-zinc-100 font-medium">${fullRawCommand}</span>`;
+        echoLine.innerHTML = `<span class="text-zinc-400 dark:text-zinc-600 font-bold notranslate">${promptUser?.innerText}</span> <span class="text-zinc-900 dark:text-zinc-100 font-bold tracking-wide">${fullRawCommand}</span>`;
         historyBox.appendChild(echoLine);
 
         const responseBlock = document.createElement('div');
-        responseBlock.className = 'space-y-1 pl-2 border-l border-zinc-300 dark:border-zinc-800 text-zinc-600 dark:text-zinc-400';
+        responseBlock.className = 'space-y-2 pl-3 border-l-2 border-emerald-500/40 text-zinc-600 dark:text-zinc-400 text-[11px] pt-1 pb-1';
 
         switch (primaryCmd) {
           case 'help':
             responseBlock.innerHTML = lang === 'id' ? `
-              <p class="text-zinc-400 dark:text-zinc-500 font-bold">// Daftar Perintah Sistem Utama:</p>
-              <p><span class="text-emerald-600 dark:text-emerald-400 font-bold w-20 inline-block">about</span> - Ringkasan profil dan biodata diri.</p>
-              <p><span class="text-emerald-600 dark:text-emerald-400 font-bold w-20 inline-block">skills</span> - Keahlian utama teknologi arsenal.</p>
-              <p><span class="text-emerald-600 dark:text-emerald-400 font-bold w-20 inline-block">projects</span> - Daftar proyek dari database Sanity.</p>
-              <p><span class="text-emerald-600 dark:text-emerald-400 font-bold w-20 inline-block">music</span> - Mengontrol pemutar musik [music play / pause / next].</p>
-              <p><span class="text-emerald-600 dark:text-emerald-400 font-bold w-20 inline-block">clear</span> - Membersihkan riwayat terminal.</p>
+              <div class="text-zinc-400 dark:text-zinc-500 font-bold mb-1">// DAFTAR MATRIKS PERINTAH KONSOL:</div>
+              <div class="grid grid-cols-1 gap-1 font-medium">
+                <p><span class="text-emerald-500 font-bold w-16 inline-block bg-emerald-500/5 dark:bg-emerald-500/10 px-1.5 py-0.5 rounded text-center border border-emerald-500/20">about</span> <span class="text-zinc-400 dark:text-zinc-500">→</span> Informasi ringkasan profil bio diri.</p>
+                <p><span class="text-emerald-500 font-bold w-16 inline-block bg-emerald-500/5 dark:bg-emerald-500/10 px-1.5 py-0.5 rounded text-center border border-emerald-500/20">skills</span> <span class="text-zinc-400 dark:text-zinc-500">→</span> Daftar amunisi teknologi arsenal.</p>
+                <p><span class="text-emerald-500 font-bold w-16 inline-block bg-emerald-500/5 dark:bg-emerald-500/10 px-1.5 py-0.5 rounded text-center border border-emerald-500/20">projects</span> <span class="text-zinc-400 dark:text-zinc-500">→</span> Rekam jejak karya dari database Sanity.</p>
+                <p><span class="text-emerald-500 font-bold w-16 inline-block bg-emerald-500/5 dark:bg-emerald-500/10 px-1.5 py-0.5 rounded text-center border border-emerald-500/20">music</span> <span class="text-zinc-400 dark:text-zinc-500">→</span> Kontrol audio [music play/pause/next].</p>
+                <p><span class="text-emerald-500 font-bold w-16 inline-block bg-emerald-500/5 dark:bg-emerald-500/10 px-1.5 py-0.5 rounded text-center border border-emerald-500/20">clear</span> <span class="text-zinc-400 dark:text-zinc-500">→</span> Bersihkan seluruh layar papan ketik.</p>
+              </div>
             ` : `
-              <p class="text-zinc-400 dark:text-zinc-500 font-bold">// System Commands Directory:</p>
-              <p><span class="text-emerald-600 dark:text-emerald-400 font-bold w-20 inline-block">about</span> - Display biography information summary.</p>
-              <p><span class="text-emerald-600 dark:text-emerald-400 font-bold w-20 inline-block">skills</span> - View core technical weaponry arsenal.</p>
-              <p><span class="text-emerald-600 dark:text-emerald-400 font-bold w-20 inline-block">projects</span> - Fetch dynamic project records.</p>
-              <p><span class="text-emerald-600 dark:text-emerald-400 font-bold w-20 inline-block">music</span> - Control global playlist state [music play / pause / next].</p>
-              <p><span class="text-emerald-600 dark:text-emerald-400 font-bold w-20 inline-block">clear</span> - Clear all current screen text buffers.</p>
+              <div class="text-zinc-400 dark:text-zinc-500 font-bold mb-1">// SYSTEM EXECUTIVE COMMANDS DIRECTORY:</div>
+              <div class="grid grid-cols-1 gap-1 font-medium">
+                <p><span class="text-emerald-500 font-bold w-16 inline-block bg-emerald-500/5 dark:bg-emerald-500/10 px-1.5 py-0.5 rounded text-center border border-emerald-500/20">about</span> <span class="text-zinc-400 dark:text-zinc-500">→</span> Display core biography profile info.</p>
+                <p><span class="text-emerald-500 font-bold w-16 inline-block bg-emerald-500/5 dark:bg-emerald-500/10 px-1.5 py-0.5 rounded text-center border border-emerald-500/20">skills</span> <span class="text-zinc-400 dark:text-zinc-500">→</span> Inspect full weaponry technical stack.</p>
+                <p><span class="text-emerald-500 font-bold w-16 inline-block bg-emerald-500/5 dark:bg-emerald-500/10 px-1.5 py-0.5 rounded text-center border border-emerald-500/20">projects</span> <span class="text-zinc-400 dark:text-zinc-500">→</span> Pull dynamic Sanity CMS portfolio logs.</p>
+                <p><span class="text-emerald-500 font-bold w-16 inline-block bg-emerald-500/5 dark:bg-emerald-500/10 px-1.5 py-0.5 rounded text-center border border-emerald-500/20">music</span> <span class="text-zinc-400 dark:text-zinc-500">→</span> Manage global sound module [play/pause/next].</p>
+                <p><span class="text-emerald-500 font-bold w-16 inline-block bg-emerald-500/5 dark:bg-emerald-500/10 px-1.5 py-0.5 rounded text-center border border-emerald-500/20">clear</span> <span class="text-zinc-400 dark:text-zinc-500">→</span> Clear all standard console output buffers.</p>
+              </div>
             `;
             break;
 
           case 'about':
-            responseBlock.innerHTML = `<p class="text-zinc-800 dark:text-zinc-200 font-bold">Ryzal Fadhillah</p><p data-translate>${sanityBio}</p>`;
+            responseBlock.innerHTML = `
+              <div class="text-zinc-800 dark:text-zinc-200 font-black tracking-tight text-xs flex items-center gap-2 mb-0.5">
+                <span class="text-[9px] px-1 bg-zinc-200 dark:bg-zinc-800 rounded font-mono text-zinc-400">0x01AA</span> Ryzal Fadhillah
+              </div>
+              <p class="text-zinc-500 dark:text-zinc-400 leading-relaxed max-w-xl" data-translate>${sanityBio}</p>
+            `;
             break;
 
           case 'skills':
-            let skHeader = lang === 'id' ? '// Senjata Teknologi Utama:' : '// Core Technology Weaponry:';
-            let skHtml = `<p class="text-zinc-400 dark:text-zinc-500 font-bold">${skHeader}</p>`;
-            skillsList.forEach((s: string) => { skHtml += `<p class="text-zinc-700 dark:text-zinc-300 flex items-center gap-1.5"><span class="text-emerald-600 dark:text-emerald-500">•</span> ${s}</p>`; });
+            let skHeader = lang === 'id' ? '// MATRIKS TEKNOLOGI ARSENAL AKTIF:' : '// CORE TECHNOLOGY ARSENAL MATRIX:';
+            let skHtml = `<div class="text-zinc-400 dark:text-zinc-500 font-bold mb-1">${skHeader}</div><div class="flex flex-wrap gap-1.5 max-w-xl">`;
+            skillsList.forEach((s: string) => { 
+              skHtml += `<span class="px-2 py-0.5 rounded bg-zinc-200/50 dark:bg-zinc-800/30 text-zinc-700 dark:text-zinc-300 font-bold border border-zinc-300/20 notranslate text-[10px] shadow-sm">${s}</span>`; 
+            });
+            skHtml += '</div>';
             responseBlock.innerHTML = skHtml;
             break;
 
           case 'projects':
-            let prHeader = lang === 'id' ? '// Menarik Data Proyek Terbaik...' : '// Fetching Best Project Records...';
-            let prFooter = lang === 'id' ? 'Ketik "go projects" untuk membuka galeri visual.' : 'Type "go projects" to switch into full visual view.';
-            let prHtml = `<p class="text-zinc-400 dark:text-zinc-500 font-bold">${prHeader}</p>`;
-            projectsList.forEach((t: string, i: number) => { prHtml += `<p class="text-zinc-800 dark:text-zinc-200" data-translate>${i + 1}. ${t}</p>`; });
-            prHtml += `<p class="text-emerald-600 dark:text-emerald-400 pt-1 font-semibold">${prFooter}</p>`;
+            let prHeader = lang === 'id' ? '// MENARIK REKAM MATRIKS KARYA DARI SANITY...' : '// PULLING SANITY PRODUCER LOG MATRIX...';
+            let prFooter = lang === 'id' ? 'Ketik "go projects" untuk membuka galeri lensa penuh.' : 'Type "go projects" to bridge into full gallery view.';
+            let prHtml = `<div class="text-zinc-400 dark:text-zinc-500 font-bold mb-1">${prHeader}</div><div class="space-y-1 font-medium">`;
+            projectsList.forEach((t: string, i: number) => { 
+              prHtml += `<p class="text-zinc-800 dark:text-zinc-200 flex items-center gap-2"><span class="text-[9px] font-mono text-zinc-400 bg-zinc-200/40 dark:bg-zinc-800/40 px-1 rounded">PRJ_0${i+1}</span> <span data-translate>${t}</span></p>`; 
+            });
+            prHtml += `</div><p class="text-emerald-500 pt-1 font-black animate-pulse tracking-wide cursor-pointer notranslate">→ ${prFooter}</p>`;
             responseBlock.innerHTML = prHtml;
             break;
 
           case 'go':
-            if (args[1] === 'projects') {
-              responseBlock.innerHTML = `<p class="text-emerald-600 dark:text-emerald-400 font-bold">${lang === 'id' ? '// Mengalihkan...' : '// Redirecting...'}</p>`;
-              setTimeout(() => { window.location.href = '/proyek'; }, 500);
+            if (args[1] === 'projects' || args[1] === 'proyek') {
+              responseBlock.innerHTML = `<p class="text-emerald-500 font-bold flex items-center gap-1.5"><span>[REDIRECT]</span> <span data-translate>// Menghubungkan jalur siber ke Galeri Proyek...</span></p>`;
+              setTimeout(() => { window.location.href = '/proyek'; }, 600);
             } else if (args[1] === 'artikel' || args[1] === 'blog') {
-              responseBlock.innerHTML = `<p class="text-emerald-600 dark:text-emerald-400 font-bold">${lang === 'id' ? '// Mengalihkan...' : '// Redirecting...'}</p>`;
-              setTimeout(() => { window.location.href = '/artikel'; }, 500);
+              responseBlock.innerHTML = `<p class="text-emerald-500 font-bold flex items-center gap-1.5"><span>[REDIRECT]</span> <span data-translate>// Menghubungkan jalur siber ke Arsip Catatan...</span></p>`;
+              setTimeout(() => { window.location.href = '/artikel'; }, 600);
             } else {
-              responseBlock.innerHTML = `<p class="text-red-500 font-bold">// Target matrix path error.</p>`;
+              responseBlock.innerHTML = `<p class="text-red-400 font-bold">// Target path error: Alamat node tidak ditemukan.</p>`;
             }
             break;
 
           case 'music':
             const cAudio = (window as any).CyberAudioCore;
-            if (!cAudio) { responseBlock.innerHTML = `<p class="text-red-400">// Audio system terminal failure.</p>`; }
+            if (!cAudio) { responseBlock.innerHTML = `<p class="text-red-400">// Audio system terminal failure: Hardware siber mati.</p>`; }
             else {
-              if (args[1] === 'play') { cAudio.play(); responseBlock.innerHTML = `<p class="text-emerald-600 font-bold">▶ Play</p>`; }
-              else if (args[1] === 'pause') { cAudio.pause(); responseBlock.innerHTML = `<p class="text-amber-600 font-bold">⏸ Pause</p>`; }
+              if (args[1] === 'play') { cAudio.play(); responseBlock.innerHTML = `<p class="text-emerald-500 font-bold flex items-center gap-1.5"><span>[AUDIO]</span> <span>▶ Core Playlist Resumed</span></p>`; }
+              else if (args[1] === 'pause') { cAudio.pause(); responseBlock.innerHTML = `<p class="text-amber-500 font-bold flex items-center gap-1.5"><span>[AUDIO]</span> <span>⏸ Core Playlist Paused</span></p>`; }
               else if (args[1] === 'next') {
                 let nIdx = cAudio.currentTrackIndex + 1; if (nIdx >= cAudio.tracksData.length) nIdx = 0; cAudio.switchTrack(nIdx);
-                responseBlock.innerHTML = `<p class="text-emerald-600 font-bold">⏭ Skip -> ${cAudio.tracksData[nIdx]?.title || ''}</p>`;
+                responseBlock.innerHTML = `<p class="text-emerald-500 font-bold flex items-center gap-1.5"><span>[AUDIO]</span> <span>⏭ Skipped to -> ${cAudio.tracksData[nIdx]?.title || ''}</span></p>`;
+              } else {
+                responseBlock.innerHTML = `<p class="text-zinc-400">// Gunakan parameter: music play, music pause, atau music next</p>`;
               }
             }
             break;
 
           case 'clear':
-            historyBox.innerHTML = `<p class="text-zinc-400 dark:text-zinc-600 font-bold">${lang === 'id' ? '// Riwayat terminal dibersihkan.' : '// Terminal buffer cleared.'}</p>`;
-            input.value = ''; return;
+            historyBox.innerHTML = `<div class="text-zinc-400 dark:text-zinc-600 font-bold flex items-center gap-1.5"><span>[CLEAN]</span> <span>${lang === 'id' ? '// Riwayat konsol dibersihkan.' : '// Terminal buffer cleared.'}</span></div>`;
+            input.value = '';
+            updateCursorPosition();
+            return;
 
           default:
-            responseBlock.innerHTML = `<p class="text-red-500 font-bold">// Error: Command not found.</p>`;
+            responseBlock.innerHTML = `<p class="text-red-400 font-bold">// Status Error 404: Command "${primaryCmd}" tidak terdaftar di kernel.</p>`;
             break;
         }
 
         historyBox.appendChild(responseBlock);
         input.value = '';
+        updateCursorPosition();
         await runDynamicTranslationEngine(); 
-        setTimeout(() => { screenScroll.scrollTop = screenScroll.scrollHeight; }, 20);
+        setTimeout(() => { screenScroll.scrollTop = screenScroll.scrollHeight; }, 30);
       }
     });
   }

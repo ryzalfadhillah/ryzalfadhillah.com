@@ -4,10 +4,8 @@ import { client } from '../lib/sanity';
 import { ClientRouter } from 'astro:transitions';
 import '../styles/global.css';
 
-// Import Presenter Komponen Utama Halaman Beranda
 import Home from '../components/Home.astro';
 
-// 🚀 PIPELINE DATA CENTRALIZED
 const profile = await client.fetch(`
   *[_type == "profile"][0]{
     name, bio, githubUsername, "cvUrl": cvFile.asset->url,
@@ -30,7 +28,6 @@ const latestArticles = await client.fetch(`
   }
 `);
 
-// 🎵 UPDATE PIPELINE: Menarik data link youtubeUrl murni teks string
 const tracks = await client.fetch(`
   *[_type == "track"]{
     trackTitle,
@@ -63,10 +60,7 @@ const tracks = await client.fetch(`
 			else document.documentElement.classList.remove('dark');
 		};
 
-		// Eksekusi langsung saat reload halaman pertama kali
 		applyThemeEngine();
-		
-		// 🚀 FIX MUTAKHIR: Memaksa tema tetap bertahan saat siklus ClientRouter melakukan swap halaman
 		document.addEventListener('astro:after-swap', applyThemeEngine);
 	</script>
   </head>

@@ -10,26 +10,21 @@ const getNavLinkClass = (targetPath: string, exact = false) => {
     : "text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200 transition-colors";
 };
 ---
-<header class="flex justify-between items-center py-4 border-b border-zinc-200 dark:border-zinc-900 select-none">
-  <span class="text-lg font-black tracking-tight bg-gradient-to-r from-emerald-500 to-teal-500 bg-clip-text text-transparent">
+<header class="sticky top-4 z-50 flex justify-between items-center px-6 py-3.5 rounded-2xl border border-white/20 dark:border-zinc-800/40 bg-white/10 dark:bg-zinc-900/15 backdrop-blur-2xl shadow-lg dark:shadow-[0_12px_40px_rgba(0,0,0,0.15)] select-none transition-all duration-300">
+  <span class="text-sm sm:text-base font-black tracking-tight bg-gradient-to-r from-emerald-500 to-teal-500 bg-clip-text text-transparent">
     {githubUsername ? `${githubUsername}.com` : 'ryzalfadhillah.com'}
   </span>
-  <nav class="flex items-center gap-6 text-sm font-medium">
+
+  <nav class="flex items-center gap-5 text-xs sm:text-sm font-semibold">
     <a href="/" class={getNavLinkClass("/", true)} data-translate>Beranda</a>
     <a href="/proyek" class={getNavLinkClass("/proyek", false)} data-translate>Proyek</a>
     <a href="/artikel" class={getNavLinkClass("/artikel", false)} data-translate>Artikel</a>
     
-    <div class="flex items-center gap-2 border-l border-zinc-200 dark:border-zinc-800 pl-4">
-      <button 
-        id="site-language-switcher" 
-        class="px-2 py-1 rounded-lg bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-[10px] font-mono font-bold text-zinc-600 dark:text-zinc-400 hover:text-emerald-500 cursor-pointer transition-colors"
-      >
-        ID
-      </button>
-
-      <button id="theme-toggle" class="p-2 rounded-xl bg-zinc-200/60 dark:bg-zinc-900 border border-zinc-300 dark:border-zinc-800 text-zinc-700 dark:text-zinc-300 hover:text-emerald-500 cursor-pointer transition-colors flex items-center justify-center" aria-label="Ubah Tema">
-        <svg id="theme-icon-sun" class="w-4 h-4 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707m12.728 0l-.707-.707M6.343 6.343l-.707-.707M12 5a7 7 0 100 14 7 7 0 000-14z"/></svg>
-        <svg id="theme-icon-moon" class="w-4 h-4 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/></svg>
+    <div class="flex items-center gap-2 border-l border-zinc-200/40 dark:border-zinc-800/40 pl-4">
+      <button id="site-language-switcher" class="px-2 py-0.5 rounded-md bg-white/20 dark:bg-zinc-900/40 border border-white/20 dark:border-zinc-800/40 text-[9px] font-mono font-bold text-zinc-600 dark:text-zinc-400 hover:text-emerald-500 cursor-pointer transition-colors">ID</button>
+      <button id="theme-toggle" class="p-1.5 rounded-lg bg-white/20 dark:bg-zinc-900/40 border border-white/20 dark:border-zinc-800/40 text-zinc-600 dark:text-zinc-400 hover:text-emerald-500 cursor-pointer transition-colors flex items-center justify-center" aria-label="Ubah Tema">
+        <svg id="theme-icon-sun" class="w-3.5 h-3.5 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707m12.728 0l-.707-.707M6.343 6.343l-.707-.707M12 5a7 7 0 100 14 7 7 0 000-14z"/></svg>
+        <svg id="theme-icon-moon" class="w-3.5 h-3.5 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/></svg>
       </button>
     </div>
   </nav>
@@ -37,51 +32,30 @@ const getNavLinkClass = (targetPath: string, exact = false) => {
 
 <script>
   import { runDynamicTranslationEngine } from '../utils/translator';
-
   function initHeaderSystem() {
     const toggle = document.getElementById('theme-toggle');
     const sunIcon = document.getElementById('theme-icon-sun');
     const moonIcon = document.getElementById('theme-icon-moon');
-
-    function updateThemeIcons() {
-      if (document.documentElement.classList.contains('dark')) {
-        sunIcon?.classList.remove('hidden'); moonIcon?.classList.add('hidden');
-      } else {
-        sunIcon?.classList.add('hidden'); moonIcon?.classList.remove('hidden');
-      }
-    }
-    updateThemeIcons();
-    if (toggle) {
-      toggle.onclick = () => {
-        document.documentElement.classList.toggle('dark');
-        localStorage.setItem('theme', document.documentElement.classList.contains('dark') ? 'dark' : 'light');
-        updateThemeIcons();
-      };
-    }
-
+    const updateIcons = () => {
+      if (document.documentElement.classList.contains('dark')) { sunIcon?.classList.remove('hidden'); moonIcon?.classList.add('hidden'); }
+      else { sunIcon?.classList.add('hidden'); moonIcon?.classList.remove('hidden'); }
+    };
+    updateIcons();
+    if (toggle) toggle.onclick = () => { document.documentElement.classList.toggle('dark'); localStorage.setItem('theme', document.documentElement.classList.contains('dark') ? 'dark' : 'light'); updateIcons(); };
     const langBtn = document.getElementById('site-language-switcher');
     let currentLang = localStorage.getItem('site-lang') || 'id';
-    
     if (langBtn) langBtn.innerText = currentLang.toUpperCase();
-    
-    // Eksekusi penerjemah otomatis saat halaman selesai dimuat
     runDynamicTranslationEngine();
-
     if (langBtn) {
       langBtn.onclick = async () => {
         const nextLang = currentLang === 'id' ? 'en' : 'id';
         localStorage.setItem('site-lang', nextLang);
         langBtn.innerText = nextLang.toUpperCase();
         currentLang = nextLang;
-
-        // Jalankan translasi layar secara realtime tanpa mereload page (musik aman!)
         await runDynamicTranslationEngine();
-        
-        // Pemicu event kustom agar komponen dinamis terpisah ikut menyesuaikan diri
         window.dispatchEvent(new CustomEvent('lang-changed-signal'));
       };
     }
   }
-
   document.addEventListener('astro:page-load', initHeaderSystem);
 </script>

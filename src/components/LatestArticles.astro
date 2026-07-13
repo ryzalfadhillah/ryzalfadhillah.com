@@ -7,7 +7,7 @@ const { latestArticles } = Astro.props;
   <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
     {latestArticles && latestArticles.length > 0 ? (
       latestArticles.map((article: any) => (
-        <a href={`/artikel/${article.slug?.current}`} class="article-card p-5 bg-zinc-100 dark:bg-zinc-900/50 border border-zinc-200/60 dark:border-zinc-900 rounded-2xl block group hover:border-emerald-500/50 dark:hover:border-emerald-500/50 transition-all shadow-sm">
+        <a href={`/artikel/${article.slug?.current}`} class="article-card p-5 bg-white/10 dark:bg-zinc-900/15 border border-zinc-200/60 dark:border-zinc-900 rounded-2xl block group hover:border-emerald-500/50 dark:hover:border-emerald-500/50 transition-all shadow-sm">
           <h3 data-translate class="font-bold text-sm sm:text-base text-zinc-800 dark:text-zinc-200 group-hover:text-emerald-500 transition-colors">{article.title}</h3>
           <span data-translate class="text-xs text-emerald-600 dark:text-emerald-400 font-medium inline-block mt-2">
             Baca Tulisan <span class="article-arrow inline-block transition-transform">→</span>

@@ -3,28 +3,25 @@
 const { skills, bio, projects } = Astro.props;
 const projectTitles = projects?.map((p: any) => p.title) || [];
 ---
-
 <div 
   id="cyber-terminal-card" 
   data-sanity-skills={JSON.stringify(skills || [])}
   data-sanity-bio={bio || "Matriks Portofolio Rekayasa Perangkat Lunak."}
   data-sanity-projects={JSON.stringify(projectTitles)}
-  class="w-full rounded-2xl bg-zinc-100/70 border border-zinc-200/80 dark:bg-zinc-950 dark:border-zinc-900 overflow-hidden flex flex-col shadow-sm dark:shadow-xl font-mono text-xs text-zinc-800 dark:text-zinc-300 h-full min-h-[340px] transition-all duration-300"
+  class="w-full rounded-3xl bg-white/5 dark:bg-zinc-950/5 bg-clip-padding backdrop-blur-md border border-zinc-200/40 dark:border-zinc-800/30 overflow-hidden flex flex-col shadow-sm font-mono text-xs text-zinc-800 dark:text-zinc-300 h-full min-h-[340px] transition-all duration-300"
 >
-  <div class="flex items-center justify-between px-4 py-2.5 bg-zinc-200/50 border-b border-zinc-200 dark:bg-zinc-900 dark:border-zinc-900 select-none shrink-0">
+  <div class="flex items-center justify-between px-4 py-3 bg-white/10 border-b border-zinc-200/20 dark:bg-zinc-900/10 dark:border-zinc-800/20 select-none shrink-0">
     <div class="flex items-center gap-1.5">
-      <div class="w-2.5 h-2.5 rounded-full bg-zinc-300 dark:bg-zinc-800"></div>
-      <div class="w-2.5 h-2.5 rounded-full bg-zinc-300 dark:bg-zinc-800"></div>
-      <div class="w-2.5 h-2.5 rounded-full bg-zinc-300 dark:bg-zinc-800"></div>
+      <div class="w-2.5 h-2.5 rounded-full bg-zinc-300/40 dark:bg-zinc-800/40"></div>
+      <div class="w-2.5 h-2.5 rounded-full bg-zinc-300/40 dark:bg-zinc-800/40"></div>
+      <div class="w-2.5 h-2.5 rounded-full bg-zinc-300/40 dark:bg-zinc-800/40"></div>
     </div>
     <span id="term-header-title" class="text-[10px] text-zinc-400 dark:text-zinc-500 font-bold tracking-wider uppercase">kernel_utama_v2.6.sh</span>
     <span class="w-4"></span>
   </div>
 
-  <div id="terminal-screen-scroll" class="p-4 flex-1 overflow-y-auto space-y-2 scrollbar-thin scrollbar-thumb-zinc-300 dark:scrollbar-thumb-zinc-800 text-[11px] leading-relaxed">
-    <div id="terminal-logs-history" class="space-y-2">
-      </div>
-
+  <div id="terminal-screen-scroll" class="p-4 flex-1 overflow-y-auto space-y-2 scrollbar-thin scrollbar-thumb-zinc-300/30 dark:scrollbar-thumb-zinc-800/30 text-[11px] leading-relaxed">
+    <div id="terminal-logs-history" class="space-y-2"></div>
     <div class="flex items-center gap-1.5 pt-1 text-zinc-700 dark:text-zinc-300">
       <span id="term-prompt-user" class="text-emerald-600 dark:text-emerald-500 font-bold shrink-0 notranslate">tamu@ryzalfadhillah:~$</span>
       <input 
@@ -58,7 +55,6 @@ const projectTitles = projects?.map((p: any) => p.title) || [];
     const sanityBio = card.getAttribute('data-sanity-bio') || '';
     const projectsList = JSON.parse(card.getAttribute('data-sanity-projects') || '[]');
 
-    // 🌟 ARSITEKTUR KATA INTERNASIONAL TERMINAL KOLEKTIF
     function renderWelcomeMessage() {
       const lang = localStorage.getItem('site-lang') || 'id';
       if (headerTitle) headerTitle.innerText = lang === 'id' ? 'kernel_utama_v2.6.sh' : 'core_kernel_v2.6.sh';
@@ -168,11 +164,13 @@ const projectTitles = projects?.map((p: any) => p.title) || [];
 
         historyBox.appendChild(responseBlock);
         input.value = '';
-        await runDynamicTranslationEngine(); // Pastikan data dinamis hasil input terminal langsung ter-translate
+        await runDynamicTranslationEngine(); 
         setTimeout(() => { screenScroll.scrollTop = screenScroll.scrollHeight; }, 20);
       }
     });
   }
 
-  document.addEventListener('astro:page-load', initInteractiveTerminal);
+  document.addEventListener('astro:page-load', () => {
+    initInteractiveTerminal();
+  });
 </script>

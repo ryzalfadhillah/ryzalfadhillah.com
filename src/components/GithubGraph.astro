@@ -2,7 +2,7 @@
 // src/components/GithubGraph.astro
 const { githubUsername } = Astro.props;
 ---
-<section class="bg-zinc-100 dark:bg-zinc-900/40 border border-zinc-200/80 dark:border-zinc-900 rounded-3xl p-6 flex flex-col justify-between overflow-hidden shadow-sm">
+<section class="bg-white/10 dark:bg-zinc-900/15 border border-zinc-200/80 dark:border-zinc-900 rounded-3xl p-6 flex flex-col justify-between overflow-hidden shadow-sm">
   <div class="flex justify-between items-center mb-4">
     <h2 data-translate class="text-xs font-bold uppercase tracking-widest text-zinc-400 dark:text-zinc-500">Grafik Kontribusi GitHub</h2>
     <span class="text-xs font-mono text-zinc-400">@{githubUsername || 'username'}</span>

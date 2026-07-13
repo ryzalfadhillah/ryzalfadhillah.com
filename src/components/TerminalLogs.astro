@@ -1,67 +1,180 @@
 ---
 // src/components/TerminalLogs.astro
-const { focusCompetency } = Astro.props;
+// Tangkap data dinamis dari Sanity CMS melalui halaman utama
+const { skills, focusCompetency, projects } = Astro.props;
+
+const projectTitles = projects?.map((p: any) => p.title) || [];
 ---
-<div class="space-y-4 relative flex flex-col w-full">
-  <h3 class="text-[10px] font-bold uppercase tracking-widest text-zinc-400 dark:text-zinc-500 border-b border-zinc-200 dark:border-zinc-900 pb-2">Engineering Domain</h3>
+
+<div 
+  id="cyber-terminal-card" 
+  data-sanity-skills={JSON.stringify(skills || [])}
+  data-sanity-about={focusCompetency || "Software Engineer Portfolio Matrix."}
+  data-sanity-projects={JSON.stringify(projectTitles)}
+  class="w-full rounded-2xl bg-zinc-100/70 border border-zinc-200/80 dark:bg-zinc-950 dark:border-zinc-900 overflow-hidden flex flex-col shadow-sm dark:shadow-xl font-mono text-xs text-zinc-800 dark:text-zinc-300 h-full min-h-[340px] transition-all duration-300"
+>
   
-  <div id="ide-terminal-container" class="relative rounded-2xl bg-white text-zinc-700 border border-zinc-200 p-4 font-mono text-xs sm:text-sm shadow-2xl overflow-hidden flex-1 flex flex-col dark:bg-[#0d0e15] dark:text-zinc-400 dark:border-zinc-800 w-full" style="transform-style: preserve-3d;">
-    <div class="flex items-center justify-between border-b border-zinc-200 pb-3 mb-4 shrink-0 dark:border-zinc-800/80">
-      <div class="flex gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-red-500/70"></span><span class="w-2.5 h-2.5 rounded-full bg-yellow-500/70"></span><span class="w-2.5 h-2.5 rounded-full bg-green-500/70"></span></div>
-      <span class="text-[10px] text-zinc-400 tracking-tight font-medium dark:text-zinc-600">domain_matrix.log</span>
-      <span class="text-[10px] text-zinc-400 dark:text-zinc-700">UTF-8</span>
+  <div class="flex items-center justify-between px-4 py-2.5 bg-zinc-200/50 border-b border-zinc-200 dark:bg-zinc-900 dark:border-zinc-900 select-none shrink-0">
+    <div class="flex items-center gap-1.5">
+      <div class="w-2.5 h-2.5 rounded-full bg-zinc-300 dark:bg-zinc-800"></div>
+      <div class="w-2.5 h-2.5 rounded-full bg-zinc-300 dark:bg-zinc-800"></div>
+      <div class="w-2.5 h-2.5 rounded-full bg-zinc-300 dark:bg-zinc-800"></div>
+    </div>
+    <span class="text-[10px] text-zinc-400 dark:text-zinc-500 font-bold tracking-wider uppercase">core_kernel_v2.6.sh</span>
+    <span class="w-4"></span>
+  </div>
+
+  <div id="terminal-screen-scroll" class="p-4 flex-1 overflow-y-auto space-y-2 scrollbar-thin scrollbar-thumb-zinc-300 dark:scrollbar-thumb-zinc-800 text-[11px] leading-relaxed">
+    <div id="terminal-logs-history" class="space-y-2">
+      <p class="text-zinc-400 dark:text-zinc-600 font-bold">// Cybernetic Terminal Connection Stabilized.</p>
+      <p class="text-zinc-600 dark:text-zinc-400">Selamat datang di sistem repositori lokal saya. Ketik <span class="text-emerald-600 dark:text-emerald-400 font-bold font-mono">help</span> untuk melihat daftar komando harian yang tersedia.</p>
     </div>
 
-    <div id="ide-glow-aura" class="absolute pointer-events-none w-48 h-48 rounded-full bg-emerald-500/5 blur-3xl opacity-0 group-hover/ide:opacity-100 transition-opacity duration-700" style="transform: translate(-50%, -50%);"></div>
-
-    <div class="space-y-3 relative z-10 flex-1 overflow-y-auto pr-1" id="ide-lines-stack" style="transform: translateZ(30px);">
-      {focusCompetency ? focusCompetency.split('.').filter((s: string) => s.trim().length > 0).map((sentence: string, idx: number) => (
-        <div class="flex gap-4 ide-row-line opacity-25 transition-opacity duration-300 will-change-transform items-start">
-          <span class="text-zinc-400 dark:text-zinc-700 text-right select-none text-[11px] font-medium w-5 pt-0.5">0{idx + 1}</span>
-          <p class="text-zinc-600 dark:text-zinc-400 font-medium leading-relaxed flex-1 tracking-wide">
-            <span class="text-emerald-500 font-bold">&gt;</span> {sentence.trim()}.
-          </p>
-        </div>
-      )) : (
-        <p class="text-xs text-zinc-400 italic">No diagnostic logs found.</p>
-      )}
+    <div class="flex items-center gap-1.5 pt-1 text-zinc-700 dark:text-zinc-300">
+      <span class="text-emerald-600 dark:text-emerald-500 font-bold shrink-0">guest@ryzalfadhillah:~$</span>
+      <input 
+        type="text" 
+        id="live-terminal-input" 
+        class="bg-transparent border-none outline-none flex-1 text-emerald-600 dark:text-emerald-400 font-bold p-0 m-0 caret-emerald-600 dark:caret-emerald-400 focus:ring-0 focus:border-none" 
+        autocomplete="off"
+        spellcheck="false"
+        aria-label="Terminal Command Input"
+      />
     </div>
   </div>
 </div>
 
 <script>
   import { gsap } from 'gsap';
-  import { ScrollTrigger } from 'gsap/ScrollTrigger';
-  gsap.registerPlugin(ScrollTrigger);
 
-  document.addEventListener('astro:page-load', () => {
-    const ideContainer = document.getElementById('ide-terminal-container');
-    const ideTorch = document.getElementById('ide-glow-aura');
-    const ideRows = document.querySelectorAll('.ide-row-line');
+  function initInteractiveTerminal() {
+    const card = document.getElementById('cyber-terminal-card');
+    const screenScroll = document.getElementById('terminal-screen-scroll');
+    const historyBox = document.getElementById('terminal-logs-history');
+    const input = document.getElementById('live-terminal-input') as HTMLInputElement;
 
-    if (ideContainer && ideRows.length > 0) {
-      gsap.to(ideRows, {
-        scrollTrigger: { trigger: ideContainer, start: "top 85%", end: "bottom 65%", scrub: 0.5 },
-        opacity: 1, stagger: 0.2, ease: "power2.out"
-      });
+    if (!input || !historyBox || !screenScroll || !card) return;
 
-      ideContainer.addEventListener('mousemove', (e: MouseEvent) => {
-        const rect = ideContainer.getBoundingClientRect(); const x = e.clientX - rect.left; const y = e.clientY - rect.top;
-        const xTilt = (x - rect.width / 2) / (rect.width / 2); const yTilt = (y - rect.height / 2) / (rect.height / 2);
-        const isDark = document.documentElement.classList.contains('dark');
-        
-        gsap.to(ideContainer, {
-          rotationY: xTilt * 8, rotationX: -yTilt * 8, transformPerspective: 1200,
-          boxShadow: `0 0 35px 5px ${isDark ? "rgba(16, 185, 129, 0.22)" : "rgba(5, 150, 105, 0.12)"}, 0 25px 50px -12px rgba(0, 0, 0, 0.15)`,
-          borderColor: isDark ? "rgba(16, 185, 129, 0.3)" : "rgba(5, 150, 105, 0.4)", duration: 0.3
-        });
-        if (ideTorch) { gsap.to(ideTorch, { left: `${x}px`, top: `${y}px`, duration: 0.2 }); }
-      });
+    card.addEventListener('click', () => input.focus());
 
-      ideContainer.addEventListener('mouseleave', () => {
-        const isDark = document.documentElement.classList.contains('dark');
-        gsap.to(ideContainer, { rotationY: 0, rotationX: 0, borderColor: isDark ? "rgb(39, 39, 42)" : "rgb(228, 228, 231)", duration: 0.6 });
-      });
-    }
-  });
+    const rawSkills = card.getAttribute('data-sanity-skills');
+    const sanityAbout = card.getAttribute('data-sanity-about');
+    const rawProjects = card.getAttribute('data-sanity-projects');
+    
+    const skillsList = rawSkills ? JSON.parse(rawSkills) : [];
+    const projectsList = rawProjects ? JSON.parse(rawProjects) : [];
+
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        const fullRawCommand = input.value;
+        const cleanedCommand = fullRawCommand.trim().toLowerCase();
+        const args = cleanedCommand.split(' ');
+        const primaryCmd = args[0];
+
+        if (cleanedCommand === '') return;
+
+        // Echo command user (responsif dual-theme)
+        const echoLine = document.createElement('div');
+        echoLine.className = 'flex items-center gap-1.5 pt-1';
+        echoLine.innerHTML = `<span class="text-zinc-400 dark:text-zinc-600 font-bold">guest@ryzalfadhillah:~$</span> <span class="text-zinc-900 dark:text-zinc-100 font-medium">${fullRawCommand}</span>`;
+        historyBox.appendChild(echoLine);
+
+        // Kontainer jawaban responsif terhadap light & dark mode
+        const responseBlock = document.createElement('div');
+        responseBlock.className = 'space-y-1 pl-2 border-l border-zinc-300 dark:border-zinc-800 text-zinc-600 dark:text-zinc-400';
+
+        switch (primaryCmd) {
+          case 'help':
+            responseBlock.innerHTML = `
+              <p class="text-zinc-400 dark:text-zinc-500 font-bold">// Daftar Komando Inti Kernel System:</p>
+              <p><span class="text-emerald-600 dark:text-emerald-400 font-bold w-20 inline-block">about</span> - Menampilkan ringkasan biodata biografi harian.</p>
+              <p><span class="text-emerald-600 dark:text-emerald-400 font-bold w-20 inline-block">skills</span> - Membongkar persenjataan core teknologi stack harian.</p>
+              <p><span class="text-emerald-600 dark:text-emerald-400 font-bold w-20 inline-block">projects</span> - Mencetak daftar proyek asli database Sanity.</p>
+              <p><span class="text-emerald-600 dark:text-emerald-400 font-bold w-20 inline-block">music</span> - Kontrol playlist [music play / music pause / music next].</p>
+              <p><span class="text-emerald-600 dark:text-emerald-400 font-bold w-20 inline-block">clear</span> - Membersihkan seluruh riwayat tumpukan logs.</p>
+            `;
+            break;
+
+          case 'about':
+            responseBlock.innerHTML = `
+              <p class="text-zinc-800 dark:text-zinc-200 font-bold">Ryzal Fadhillah — Software Engineer</p>
+              <p class="leading-relaxed">${sanityAbout}</p>
+            `;
+            break;
+
+          case 'skills':
+            let skillsHtml = `<p class="text-zinc-400 dark:text-zinc-500 font-bold">// Core Tech Weaponry Arsenal (Live Sanity CMS):</p>`;
+            if (skillsList.length > 0) {
+              skillsList.forEach((s: string) => {
+                skillsHtml += `<p class="text-zinc-700 dark:text-zinc-300 flex items-center gap-1.5"><span class="text-emerald-600 dark:text-emerald-500">•</span> ${s}</p>`;
+              });
+            } else {
+              skillsHtml += `<p class="italic text-zinc-400">Belum ada skill terdaftar.</p>`;
+            }
+            responseBlock.innerHTML = skillsHtml;
+            break;
+
+          case 'projects':
+            let projectsHtml = `<p class="text-zinc-400 dark:text-zinc-500 font-bold">// Fetching Blueprint Database (Live Sanity CMS)...</p>`;
+            if (projectsList.length > 0) {
+              projectsList.forEach((title: string, index: number) => {
+                projectsHtml += `<p class="text-zinc-800 dark:text-zinc-200">${index + 1}. ${title}</p>`;
+              });
+            } else {
+              projectsHtml += `<p class="italic text-zinc-400">Belum ada proyek yang diterbitkan.</p>`;
+            }
+            projectsHtml += `<p class="text-zinc-500 dark:text-zinc-400 pt-1 font-semibold text-emerald-600 dark:text-emerald-400/80">Ketik "go projects" untuk membuka galeri filter visual penuh.</p>`;
+            responseBlock.innerHTML = projectsHtml;
+            break;
+
+          case 'go':
+            if (args[1] === 'projects') {
+              responseBlock.innerHTML = `<p class="text-emerald-600 dark:text-emerald-400 font-bold">// Redirecting Hyperlink Spatial Loop...</p>`;
+              setTimeout(() => { window.location.href = '/proyek'; }, 600);
+            } else if (args[1] === 'artikel' || args[1] === 'blog') {
+              responseBlock.innerHTML = `<p class="text-emerald-600 dark:text-emerald-400 font-bold">// Redirecting Hyperlink Archive...</p>`;
+              setTimeout(() => { window.location.href = '/artikel'; }, 600);
+            } else {
+              responseBlock.innerHTML = `<p class="text-red-500 dark:text-red-400 font-bold">// Target navigasi "${args[1] || ''}" tidak valid.</p>`;
+            }
+            break;
+
+          case 'music':
+            const coreAudio = (window as any).CyberAudioCore;
+            if (!coreAudio) {
+              responseBlock.innerHTML = `<p class="text-amber-600 dark:text-yellow-500 font-bold">// Audio core stream node belum terinisialisasi.</p>`;
+            } else {
+              const subAction = args[1];
+              if (subAction === 'play') { coreAudio.play(); responseBlock.innerHTML = `<p class="text-emerald-600 dark:text-emerald-400 font-bold">▶ Music Node Stream: PLAYED</p>`; }
+              else if (subAction === 'pause') { coreAudio.pause(); responseBlock.innerHTML = `<p class="text-amber-600 dark:text-yellow-400 font-bold">⏸ Music Node Stream: PAUSED</p>`; }
+              else if (subAction === 'next') {
+                let nIdx = coreAudio.currentTrackIndex + 1;
+                if (nIdx >= coreAudio.tracksData.length) nIdx = 0;
+                coreAudio.switchTrack(nIdx);
+                const trackName = coreAudio.tracksData[nIdx]?.title || "Next Track";
+                responseBlock.innerHTML = `<p class="text-emerald-600 dark:text-emerald-400 font-bold">⏭ Skip Node Track: Loading "${trackName}"</p>`;
+              } else {
+                responseBlock.innerHTML = `<p class="text-zinc-400 dark:text-zinc-500 font-bold">// Gunakan parameter: music play, music pause, atau music next</p>`;
+              }
+            }
+            break;
+
+          case 'clear':
+            historyBox.innerHTML = `<p class="text-zinc-400 dark:text-zinc-600 font-bold">// Cybernetic Terminal Cleared. Session Reset.</p>`;
+            input.value = '';
+            return;
+
+          default:
+            responseBlock.innerHTML = `<p class="text-red-500 dark:text-red-400 font-bold">// Command Error: Perintah "${primaryCmd}" tidak dikenali kernel.</p>`;
+            break;
+        }
+
+        historyBox.appendChild(responseBlock);
+        input.value = '';
+        setTimeout(() => { screenScroll.scrollTop = screenScroll.scrollHeight; }, 20);
+      }
+    });
+  }
+
+  document.addEventListener('astro:page-load', initInteractiveTerminal);
 </script>

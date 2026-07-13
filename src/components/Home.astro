@@ -38,7 +38,12 @@ const { profile, projects, latestArticles, tracks } = Astro.props;
         <LinguisticBars languages={profile?.languages} />
         <QuantumCore />
       </div>
-      <TerminalLogs focusCompetency={profile?.focusCompetency} />
+      <TerminalLogs 
+        focusCompetency={profile?.focusCompetency} 
+        skills={profile?.skills} 
+        bio={profile?.bio} 
+        projects={projects} 
+      />
     </div>
   </section>
 

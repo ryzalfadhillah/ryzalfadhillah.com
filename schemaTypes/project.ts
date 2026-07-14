@@ -24,7 +24,7 @@ export const project = defineType({
       name: 'thumbnail', 
       title: 'Gambar Sampul (Thumbnail)', 
       type: 'image',
-      options: { hotspot: true } // Mengaktifkan fokus pemotongan gambar dinamis
+      options: { hotspot: true }
     }),
     defineField({ 
       name: 'description', 
@@ -38,12 +38,15 @@ export const project = defineType({
       type: 'array', 
       of: [{ type: 'block' }],
       description: 'Penjelasan panjang mengenai arsitektur kode, tantangan teknis, dan solusi.'
-    }),
+    })
     defineField({ 
-      name: 'tags', 
+      name: 'technologies', 
       title: 'Teknologi / Stack yang Digunakan', 
       type: 'array', 
       of: [{ type: 'string' }],
+      options: {
+        layout: 'tags'
+      },
       description: 'Contoh item: Astro, React 19, Tailwind v4, GSAP, TypeScript.'
     }),
     defineField({ 

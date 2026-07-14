@@ -7,8 +7,8 @@ export default defineConfig({
   title: 'ryzalfadhillah.com',
   projectId: 'mxkcjxob',
   dataset: 'production',
-  plugins: [structureTool()], // Mengaktifkan alat navigasi konten bawaan Sanity
+  plugins: [structureTool()],
   schema: {
-    types: schemaTypes, // Mendaftarkan 4 skema yang sudah kita buat kemarin
+    types: schemaTypes,
   },
 });

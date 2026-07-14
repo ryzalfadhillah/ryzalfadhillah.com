@@ -38,7 +38,7 @@ export const project = defineType({
       type: 'array', 
       of: [{ type: 'block' }],
       description: 'Penjelasan panjang mengenai arsitektur kode, tantangan teknis, dan solusi.'
-    })
+    }),
     defineField({ 
       name: 'technologies', 
       title: 'Teknologi / Stack yang Digunakan', 

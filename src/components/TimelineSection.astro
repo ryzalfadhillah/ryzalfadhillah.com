@@ -18,7 +18,7 @@ const { experiences, education } = Astro.props;
           <div class="space-y-1">
             <span class="text-xs font-mono text-emerald-600 dark:text-emerald-400 font-semibold" data-translate>{exp.period}</span>
             <h3 class="font-bold text-base text-zinc-900 dark:text-zinc-50 group-hover:text-emerald-500 transition-colors">{exp.role}</h3>
-            <p class="text-xs text-zinc-500 dark:text-zinc-400 font-medium" data-translate>{exp.company}</p>
+            <p class="text-xs text-zinc-500 dark:text-zinc-400 font-medium">{exp.company}</p>
             <p class="text-xs text-zinc-500 dark:text-zinc-400 max-w-xl pt-1 leading-relaxed whitespace-pre-line" data-translate>{exp.description}</p>
           </div>
         </div>
@@ -40,7 +40,7 @@ const { experiences, education } = Astro.props;
           <div class="space-y-1">
             <span class="text-xs font-mono text-teal-600 dark:text-teal-400 font-semibold" data-translate>{edu.period}</span>
             <h3 class="font-bold text-base text-zinc-900 dark:text-zinc-50 group-hover:text-teal-500 transition-colors" data-translate>{edu.degree}</h3>
-            <p class="text-xs text-zinc-500 dark:text-zinc-400 font-medium" data-translate>{edu.institution}</p>
+            <p class="text-xs text-zinc-500 dark:text-zinc-400 font-medium" >{edu.institution}</p>
             {edu.description && <p class="text-xs text-zinc-500 dark:text-zinc-400 max-w-xl pt-1 leading-relaxed whitespace-pre-line" data-translate>{edu.description}</p>}
           </div>
         </div>

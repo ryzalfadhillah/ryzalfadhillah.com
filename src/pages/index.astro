@@ -16,9 +16,14 @@ const profile = await client.fetch(`
 `);
 
 const projects = await client.fetch(`
-  *[_type == "project" && featured == true]{
-    title, description, slug, tags, "imageUrl": thumbnail.asset->url,
-    liveLink, gitLink
+  *[_type == "project" && featured == true && !(_id in path('drafts.**'))]{
+    title, 
+    description, 
+    slug, 
+    technologies, 
+    "imageUrl": thumbnail.asset->url,
+    liveLink, 
+    gitLink
   }
 `);
 

@@ -3,27 +3,47 @@
 const { projects } = Astro.props;
 const tripleProjects = projects ? [...projects, ...projects, ...projects] : [];
 ---
-<section class="space-y-4" id="spatial-marquee-section">
+<section class="space-y-4 select-none" id="spatial-marquee-section">
   <div class="flex justify-between items-baseline px-1">
-    <h2 data-translate class="text-xs font-bold uppercase tracking-widest text-zinc-400 dark:text-zinc-500 border-l-2 border-emerald-500 pl-3">Proyek</h2>
-    <span data-translate class="text-[10px] font-mono text-zinc-400 dark:text-zinc-50">// Hover untuk Berhenti & Fokus</span>
+    <a href="/proyek" data-translate class="text-xs font-bold uppercase tracking-widest text-zinc-400 dark:text-zinc-500 border-l-2 border-emerald-500 pl-3">Proyek</a>
   </div>
-  <div class="w-full relative overflow-hidden py-8 bg-zinc-100/30 dark:bg-zinc-900/10 border border-zinc-200 dark:border-zinc-900 rounded-3xl" style="perspective: 1200px;">
+  
+  <div id="marquee-container" class="w-full relative overflow-hidden py-8 bg-zinc-100/30 dark:bg-zinc-900/10 border border-zinc-200 dark:border-zinc-900 rounded-3xl cursor-grab active:cursor-grabbing" style="perspective: 1200px;">
     <div id="lens-marquee-track" class="flex gap-8 items-center whitespace-nowrap will-change-transform py-4" style="transform-style: preserve-3d; width: max-content;">
       {tripleProjects.map((project: any) => (
-        <div class="lens-project-card w-[280px] sm:w-[360px] h-[380px] sm:h-[440px] bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800/80 rounded-[28px] overflow-hidden flex flex-col justify-between shadow-xl inline-block whitespace-normal select-none" style="transform-style: preserve-3d;">
-          <div class="w-full h-[45%] overflow-hidden relative bg-zinc-950">
-            <img src={project.imageUrl || "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=800"} alt={project.title} class="w-full h-full object-cover opacity-85" />
+        <div 
+          data-slug={project.slug?.current || project.slug} 
+          class="lens-project-card w-[280px] sm:w-[360px] h-[380px] sm:h-[440px] bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800/80 rounded-[28px] overflow-hidden flex flex-col justify-between shadow-xl inline-block whitespace-normal select-none transition-shadow duration-300 hover:shadow-2xl relative" 
+          style="transform-style: preserve-3d;"
+        >
+          {/* 🌟 FIX 1: Ditambahkan draggable="false" agar browser tidak memotong gerakan mouse */}
+          <div class="w-full h-[45%] overflow-hidden relative bg-zinc-950 pointer-events-none">
+            <img 
+              src={project.imageUrl || "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=800"} 
+              alt={project.title} 
+              draggable="false" 
+              class="w-full h-full object-cover opacity-85 select-none" 
+            />
             <div class="absolute inset-0 bg-gradient-to-t from-white dark:from-zinc-900 to-transparent opacity-90"></div>
           </div>
-          <div class="p-6 flex-1 flex flex-col justify-between space-y-4">
+          <div class="p-6 flex-1 flex flex-col justify-between space-y-4 pointer-events-none">
             <div class="space-y-1">
               <h3 class="font-black text-lg text-zinc-900 dark:text-zinc-50 tracking-tight">{project.title}</h3>
               <p data-translate class="text-xs text-zinc-500 dark:text-zinc-400 line-clamp-3 pt-1">{project.description}</p>
             </div>
-            <div class="flex gap-4 text-xs font-bold border-t border-zinc-100 dark:border-zinc-800/60 pt-2">
-              {project.liveLink && <a data-translate href={project.liveLink} target="_blank" class="text-emerald-600 dark:text-emerald-400">Demo ↗</a>}
-              {project.gitLink && <a data-translate href={project.gitLink} target="_blank" class="text-zinc-400">Source</a>}
+            
+            {/* Tombol Demo & Source eksternal */}
+            <div class="flex gap-4 text-xs font-bold border-t border-zinc-100 dark:border-zinc-800/60 pt-2 pointer-events-auto">
+              {project.liveLink && (
+                <a data-translate href={project.liveLink} target="_blank" class="text-emerald-600 dark:text-emerald-400 hover:underline z-30 relative">
+                  Demo ↗
+                </a>
+              )}
+              {project.gitLink && (
+                <a data-translate href={project.gitLink} target="_blank" class="text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 transition-colors z-30 relative">
+                  Source
+                </a>
+              )}
             </div>
           </div>
         </div>
@@ -36,28 +56,163 @@ const tripleProjects = projects ? [...projects, ...projects, ...projects] : [];
   import { gsap } from 'gsap';
 
   document.addEventListener('astro:page-load', () => {
+    const container = document.getElementById('marquee-container');
     const track = document.getElementById('lens-marquee-track');
     const cards = document.querySelectorAll('.lens-project-card');
 
-    if (track && cards.length > 0) {
-      const trackWidth = track.scrollWidth / 3;
-      const marqueeTween = gsap.to(track, { x: -trackWidth, ease: "none", duration: 22, repeat: -1 });
-      track.addEventListener('mouseenter', () => marqueeTween.pause());
-      track.addEventListener('mouseleave', () => marqueeTween.play());
+    if (!container || !track || cards.length === 0) return;
 
-      gsap.ticker.add(() => {
-        const center = window.innerWidth / 2;
-        cards.forEach(card => {
-          const rect = card.getBoundingClientRect(); const cardCenter = rect.left + rect.width / 2;
-          const ratio = (cardCenter - center) / (window.innerWidth / 2); const absRatio = Math.abs(ratio);
-          if (absRatio < 1.5) {
-            gsap.set(card, {
-              scale: 1 - (absRatio * 0.14), opacity: 1 - (absRatio * 0.45), rotationY: ratio * -24, z: absRatio * -120,
-              transformPerspective: 1000, filter: `blur(${Math.max(0, (absRatio - 0.2) * 5)}px)`, overwrite: "auto"
-            });
-          }
-        });
+    const baseSpeed = 2.0; 
+    let currentX = 0;
+    let isDragging = false;
+    let startX = 0;
+    let isHovered = false;
+
+    // 🌟 FIX 2: Koordinat jangkar & waktu untuk membedakan KLIK vs DRAG secara mutlak
+    let initialClientX = 0;
+    let initialClientY = 0;
+    let startTime = 0;
+
+    let cardData: any[] = [];
+    let containerLeft = 0;
+    let containerCenter = 0;
+    let trackWidth = 0;
+
+    const cachePositions = () => {
+      const savedX = currentX;
+      gsap.set(track, { x: 0 });
+      
+      const containerRect = container.getBoundingClientRect();
+      containerLeft = containerRect.left;
+      containerCenter = containerLeft + containerRect.width / 2;
+      trackWidth = track.scrollWidth / 3;
+
+      const trackRect = track.getBoundingClientRect();
+      cardData = Array.from(cards).map((card) => {
+        const cardRect = card.getBoundingClientRect();
+        return {
+          element: card,
+          initialCenterOffset: (cardRect.left - trackRect.left) + cardRect.width / 2
+        };
       });
-    }
+
+      currentX = savedX;
+      gsap.set(track, { x: currentX });
+    };
+
+    cachePositions();
+    window.addEventListener('resize', cachePositions);
+
+    const tickerFunc = () => {
+      if (!isDragging && !isHovered) {
+        currentX -= baseSpeed;
+      }
+
+      if (currentX <= -trackWidth) {
+        currentX += trackWidth;
+        if (isDragging) startX -= trackWidth;
+      } else if (currentX > 0) {
+        currentX -= trackWidth;
+        if (isDragging) startX += trackWidth;
+      }
+
+      gsap.set(track, { x: currentX });
+
+      cardData.forEach(card => {
+        const cardCenter = containerLeft + card.initialCenterOffset + currentX;
+        const ratio = (cardCenter - containerCenter) / (window.innerWidth / 2);
+        const absRatio = Math.abs(ratio);
+
+        if (absRatio < 1.5) {
+          gsap.set(card.element, {
+            scale: 1 - (absRatio * 0.12),
+            opacity: 1 - (absRatio * 0.4),
+            rotationY: ratio * -20,
+            z: absRatio * -100,
+            transformPerspective: 1000,
+            filter: `blur(${Math.max(0, (absRatio - 0.2) * 4)}px)`,
+            overwrite: "auto"
+          });
+        }
+      });
+    };
+
+    gsap.ticker.add(tickerFunc);
+
+    container.addEventListener('mouseenter', () => isHovered = true);
+    container.addEventListener('mouseleave', () => {
+      if (!isDragging) isHovered = false;
+    });
+
+    // --- FUNGSI UTAMA MOUSE / TOUCH CONTROL ---
+    const onStart = (clientX: number, clientY: number, target: HTMLElement) => {
+      // Jika menekan tombol eksternal (Demo/Source), abaikan sistem drag agar link bawaan bekerja
+      if (target.closest('a')) return;
+
+      isDragging = true;
+      startTime = Date.now();
+      initialClientX = clientX;
+      initialClientY = clientY;
+      startX = clientX - currentX;
+    };
+
+    const onMove = (clientX: number) => {
+      if (!isDragging) return;
+      currentX = clientX - startX;
+    };
+
+    const onEnd = (clientX: number, clientY: number, target: HTMLElement) => {
+      if (!isDragging) return;
+      isDragging = false;
+
+      // Hitung delta pergeseran piksel murni dari titik awal tekan
+      const deltaX = Math.abs(clientX - initialClientX);
+      const deltaY = Math.abs(clientY - initialClientY);
+      const timeElapsed = Date.now() - startTime;
+
+      // 🌟 KUNCI UTAMA: Jika geseran kurang dari 8px DAN ditekan kurang dari 250 milidetik -> FIX KLIK MURNI
+      if (deltaX < 8 && deltaY < 8 && timeElapsed < 250) {
+        const card = target.closest('.lens-project-card');
+        if (card && !target.closest('a')) {
+          const slug = card.getAttribute('data-slug');
+          if (slug) {
+            window.location.href = `/project/${slug}`;
+            return;
+          }
+        }
+      }
+
+      // Kembalikan status hover biasa setelah dilepas
+      const hoveredEl = document.querySelectorAll(':hover');
+      isHovered = Array.from(hoveredEl).some(el => el === container);
+    };
+
+    // MOUSE LISTENERS
+    container.addEventListener('mousedown', (e) => onStart(e.clientX, e.clientY, e.target as HTMLElement));
+    window.addEventListener('mousemove', (e) => onMove(e.clientX));
+    window.addEventListener('mouseup', (e) => onEnd(e.clientX, e.clientY, e.target as HTMLElement));
+
+    // TOUCH LISTENERS (MOBILE RESPONSIF)
+    container.addEventListener('touchstart', (e) => {
+      onStart(e.touches[0].clientX, e.touches[0].clientY, e.target as HTMLElement);
+    }, { passive: true });
+    window.addEventListener('touchmove', (e) => onMove(e.touches[0].clientX), { passive: true });
+    window.addEventListener('touchend', (e) => {
+      const touch = e.changedTouches[0];
+      onEnd(touch.clientX, touch.clientY, e.target as HTMLElement);
+    });
+
+    // Amankan agar event klik bawaan container tidak memicu hal aneh
+    container.addEventListener('click', (e) => {
+      if (!(e.target as HTMLElement).closest('a')) {
+        e.preventDefault();
+      }
+    });
+
+    // Bersihkan memory saat berganti halaman (Astro View Transitions Support)
+    document.addEventListener('astro:before-swap', () => {
+      gsap.ticker.remove(tickerFunc);
+      window.removeEventListener('resize', cachePositions);
+    }, { once: true });
   });
 </script>

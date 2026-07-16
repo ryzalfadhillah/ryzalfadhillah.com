@@ -36,7 +36,9 @@ const { profile, projects, latestArticles, tracks } = Astro.props;
     <div class="grid grid-cols-1 md:grid-cols-2 gap-12 pt-2 items-stretch">
       <div class="flex flex-col justify-between h-full space-y-8">
         <LinguisticBars languages={profile?.languages} />
-        <QuantumCore />
+        <div class="hidden md:block">
+          <QuantumCore />
+        </div>
       </div>
       <TerminalLogs 
         focusCompetency={profile?.focusCompetency} 
